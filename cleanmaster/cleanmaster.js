@@ -1,139 +1,109 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    // --- STATE, API & DOM ELEMENTS ---
-    const api = new GitHubAPI();
-    const GITHUB_FILE_PATH = 'data/cleanmaster.json';
-    let appData = { insumos: [], servicosPadrao: [], clientes: [], servicosPrestados: [] };
-    let fileSHA = null;
-    let orcamentoAtual = { cliente: { id: null, nome: null }, servicos: [] };
-    let insumosVinculadosCache = [];
-    const loader = document.getElementById('loader');
+/* Estilos Base */
+body { font-family: 'Roboto', sans-serif; background-color: #f4f6f8; margin: 0; color: #333; }
+.container { padding: 15px; max-width: 600px; margin: 0 auto; }
+header { background-color: #2980b9; color: white; padding: 15px 20px; display: flex; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+header h1 { margin: 0; font-size: 1.2rem; text-align: center; flex-grow: 1; }
+.back-button { color: white; text-decoration: none; font-size: 1.5rem; position: absolute; }
+.card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
+h2, h3, h4 { color: #2c3e50; margin-top: 0; }
+h4 { font-size: 1rem; color: #34495e; border-bottom: 1px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 15px; }
+.divider { height: 1px; background-color: #ecf0f1; margin: 20px 0; }
+label { font-weight: 500; font-size: 0.9rem; color: #34495e; margin-bottom: 5px; display: block; }
+.hidden { display: none; }
+.empty-state { text-align: center; color: #95a5a6; padding: 20px; background-color: #f9f9f9; border-radius: 8px; }
 
-    // --- HELPER FUNCTIONS (Notificações e UI) ---
-    const showLoader = (show) => loader.style.display = show ? 'flex' : 'none';
+/* Abas */
+.tabs { display: flex; flex-wrap: wrap; border-bottom: 2px solid #ddd; margin-bottom: 20px; background-color: #fff; border-radius: 8px 8px 0 0; }
+.tab-link { flex-grow: 1; background: none; border: none; padding: 15px 10px; cursor: pointer; font-size: 0.95rem; color: #7f8c8d; border-bottom: 3px solid transparent; text-align: center; }
+.tab-link.active { color: #2980b9; border-bottom-color: #2980b9; font-weight: 500; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.5s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(() => toast.classList.add('show'), 100);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            toast.addEventListener('transitionend', () => toast.remove());
-        }, 4000);
-    }
+/* Formulários */
+form { display: flex; flex-direction: column; gap: 15px; }
+input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1rem; font-family: 'Roboto', sans-serif; }
+textarea { resize: vertical; }
+.inline-fields { display: flex; gap: 10px; }
+button { padding: 15px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
+button.submit-btn { background-color: #27ae60; }
+button.delete-btn { background-color: #e74c3c; color: white; border-radius: 50%; width: 24px; height: 24px; padding: 0; font-size: 1rem; line-height: 24px; text-align: center; flex-shrink: 0; border: none; }
 
-    // --- INITIALIZATION ---
-    async function init() {
-        showLoader(true);
-        try {
-            const { content, sha } = await api.getFile(GITHUB_FILE_PATH);
-            if (content) {
-                appData = { insumos: [], servicosPadrao: [], clientes: [], servicosPrestados: [], ...content };
-            }
-            fileSHA = sha;
-        } catch (error) {
-            console.error("Falha ao carregar dados do GitHub.", error);
-            showToast("Falha ao carregar dados do GitHub.", "error");
-        } finally {
-            renderAll();
-            setupEventListeners();
-            showLoader(false);
-        }
-    }
+/* Controles de Insumos */
+.add-insumo-controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; align-items: center; }
+#sp-add-insumo-btn { padding: 12px; }
 
-    // --- RENDER & RE-RENDER ---
-    function renderAll() {
-        renderInsumosList();
-        renderServicosPadraoList();
-        populateInsumoSelects();
-        populateServicoPadraoSelect();
-        renderClientesList();
-    }
+/* Listas de Itens */
+.item-vinculado { display: flex; justify-content: space-between; align-items: center; background-color: #ecf0f1; padding: 8px 12px; border-radius: 5px; margin-bottom: 8px; font-size: 0.9rem; }
+.servico-padrao-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
+.servico-padrao-item:last-child { border-bottom: none; }
+.item-info .nome { font-weight: 500; color: #2c3e50; }
+.item-info .custo, .item-info .tempo { color: #7f8c8d; font-size: 0.85rem; }
 
-    function renderInsumosList() {
-        const lista = document.getElementById('insumos-lista');
-        if (!lista) return;
-        lista.innerHTML = '';
-        if (appData.insumos.length === 0) {
-            lista.innerHTML = '<p class="empty-state">Nenhum insumo cadastrado.</p>';
-            return;
-        }
-        appData.insumos.forEach(insumo => {
-            const item = document.createElement('div');
-            item.className = 'insumo-item';
-            item.dataset.id = insumo.id;
-            item.innerHTML = `
-                <span class="nome">${insumo.nome}</span>
-                <div class="editable-fields">
-                    <span>R$</span>
-                    <input type="number" class="insumo-preco-edit" value="${insumo.precoTotal.toFixed(2)}" step="0.01">
-                    <span>/</span>
-                    <input type="number" class="insumo-qtd-edit" value="${insumo.quantidadeTotal}" step="0.01">
-                    <span>${insumo.unidadeMedida}</span>
-                </div>
-                <div class="insumo-custo-calculado">
-                    Custo: R$ ${insumo.custoPorUnidade.toFixed(2)}/${insumo.unidadeMedida}
-                </div>
-                <button type="button" class="delete-btn" data-id="${insumo.id}">&times;</button>
-            `;
-            lista.appendChild(item);
-        });
-    }
+/* ESTILOS PARA EDIÇÃO RÁPIDA DE INSUMOS (ESTAVA FALTANDO) */
+.insumo-item { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
+.insumo-item .nome { font-weight: 500; grid-column: 1 / 4; }
+.insumo-item .editable-fields { display: flex; align-items: center; gap: 5px; grid-column: 1 / 3; }
+.insumo-item .editable-fields input { width: 80px; text-align: center; }
+.insumo-item .insumo-custo-calculado { grid-column: 1 / 3; font-size: 0.85rem; color: #7f8c8d; justify-self: start; }
+.insumo-item .delete-btn { justify-self: end; grid-column: 3 / 4; grid-row: 2 / 4; }
 
-    function renderServicosPadraoList() {
-        const lista = document.getElementById('servicos-padrao-lista');
-        if (!lista) return;
-        lista.innerHTML = '';
-        if (appData.servicosPadrao.length === 0) {
-            lista.innerHTML = '<p class="empty-state">Nenhum modelo de serviço cadastrado.</p>';
-            return;
-        }
-        appData.servicosPadrao.forEach(sp => {
-            const custoTotal = calcularCustoTotalServicoPadrao(sp);
-            const item = document.createElement('div');
-            item.className = 'servico-padrao-item';
-            item.innerHTML = `<div class="item-info"><div class="nome">${sp.nome}</div><div class="custo">Custo Base: R$ ${custoTotal.toFixed(2)}</div></div><button type="button" class="delete-btn" data-id="${sp.id}">&times;</button>`;
-            lista.appendChild(item);
-        });
-    }
-    
-    // ... (outras funções de render, populate e cálculo da resposta anterior) ...
-    
-    // --- SETUP EVENT LISTENERS ---
-    function setupEventListeners() {
-        // Nova Lógica para Abas
-        document.querySelector('.tabs')?.addEventListener('click', (e) => {
-            if (e.target.matches('.tab-link')) {
-                const tabName = e.target.dataset.tab;
-                document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = "none");
-                document.querySelectorAll('.tab-link').forEach(tl => tl.classList.remove("active"));
-                document.getElementById(tabName).style.display = "block";
-                e.target.classList.add("active");
-            }
-        });
+/* Orçamento e Lançamento */
+.orcamento-itens-container { border: 1px solid #eee; border-radius: 8px; margin-top: 15px; padding: 10px; min-height: 50px; }
+.orcamento-item { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 8px; }
+.orcamento-item .item-preco { text-align: right; }
+.orcamento-item .item-preco label { font-size: 0.8rem; display: block; margin-bottom: 2px; color: #7f8c8d; }
+.orcamento-item .item-preco-input { width: 100px; padding: 8px; text-align: right; }
 
-        // Event Listeners dos Formulários e Botões
-        // (Todos os event listeners da resposta anterior, agora dentro desta função)
-    }
+.finance-summary { background-color: #f9fafb; padding: 15px; border-radius: 8px; }
+.finance-row { display: flex; justify-content: space-between; font-size: 1.1rem; padding: 8px 0; border-bottom: 1px solid #ecf0f1; }
+.finance-row:last-child { border-bottom: none; }
+.finance-row.lucro { font-size: 1.2rem; font-weight: bold; }
+.finance-row.lucro strong { color: #27ae60; }
 
-    // ... (código completo de todos os seus event handlers aqui) ...
+/* Aba Clientes */
+#clientes-lista .cliente-list-item { cursor: pointer; padding: 15px; border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s; }
+#clientes-lista .cliente-list-item:hover { background-color: #f5f5f5; }
+#cliente-detalhes-nome { border-bottom: 2px solid #2980b9; padding-bottom: 10px; margin-bottom: 15px; }
+.historico-servico-item { background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 0.9rem; }
+.historico-servico-item .data { font-weight: bold; }
 
-    // --- DATA PERSISTENCE ---
-    async function saveData(commitMessage) {
-        showLoader(true);
-        try {
-            const response = await api.saveFile(GITHUB_FILE_PATH, appData, commitMessage, fileSHA);
-            fileSHA = response.content.sha;
-            showToast('Operação salva com sucesso!');
-        } catch (error) {
-            console.error('Erro ao salvar:', error);
-            showToast('Falha ao salvar dados.', 'error');
-        } finally {
-            showLoader(false);
-        }
-    }
-    
-    init();
-});
+/* Loader */
+.loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+.loader { border: 8px solid #f3f3f3; border-radius: 50%; border-top: 8px solid #3498db; width: 60px; height: 60px; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* ESTILOS PARA NOTIFICAÇÃO (TOAST) (ESTAVA FALTANDO) */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast.success {
+    background-color: #27ae60;
+}
+
+.toast.error {
+    background-color: #e74c3c;
+}
