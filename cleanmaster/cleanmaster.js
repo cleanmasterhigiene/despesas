@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
     // ===================================================================
-    // --- 1. STATE, API & DOM ELEMENTS ---
+    // --- 1. STATE & API ---
     // ===================================================================
     const api = new GitHubAPI();
     const GITHUB_FILE_PATH = 'data/cleanmaster.json';
@@ -11,9 +11,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loader = document.getElementById('loader');
 
     // ===================================================================
-    // --- 2. HELPER FUNCTIONS (Notificações, UI, Cálculos) ---
+    // --- 2. HELPERS (Notificações, UI, Cálculos) ---
     // ===================================================================
-    const showLoader = (show) => { if(loader) loader.style.display = show ? 'flex' : 'none'; };
+    const showLoader = (show) => { if (loader) loader.style.display = show ? 'flex' : 'none'; };
 
     function showToast(message, type = 'success') {
         const container = document.getElementById('toast-container');
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const lista = document.getElementById('insumos-lista');
         if (!lista) return;
         lista.innerHTML = '';
-        if (appData.insumos.length === 0) {
+        if (!appData.insumos || appData.insumos.length === 0) {
             lista.innerHTML = '<p class="empty-state">Nenhum insumo cadastrado.</p>';
             return;
         }
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const lista = document.getElementById('servicos-padrao-lista');
         if(!lista) return;
         lista.innerHTML = '';
-        if (appData.servicosPadrao.length === 0) {
+        if (!appData.servicosPadrao || appData.servicosPadrao.length === 0) {
             lista.innerHTML = '<p class="empty-state">Nenhum modelo de serviço cadastrado.</p>';
             return;
         }
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const lista = document.getElementById('clientes-lista');
         if(!lista) return;
         lista.innerHTML = '';
-        const filtered = appData.clientes.filter(c => c.nome.toLowerCase().includes(filter.toLowerCase()));
+        const filtered = (appData.clientes || []).filter(c => c.nome.toLowerCase().includes(filter.toLowerCase()));
         if (filtered.length === 0) {
             lista.innerHTML = '<p class="empty-state">Nenhum cliente encontrado.</p>';
             return;
@@ -161,16 +161,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const custoTotal = orcamentoAtual.servicos.reduce((acc, s) => acc + s.custo, 0);
         const precoTotal = orcamentoAtual.servicos.reduce((acc, s) => acc + s.preco, 0);
         const lucroTotal = precoTotal - custoTotal;
-        document.getElementById('orcamento-custo-total').textContent = `R$ ${custoTotal.toFixed(2)}`;
-        document.getElementById('orcamento-preco-total').textContent = `R$ ${precoTotal.toFixed(2)}`;
-        document.getElementById('orcamento-lucro-total').textContent = `R$ ${lucroTotal.toFixed(2)}`;
+        const custoEl = document.getElementById('orcamento-custo-total');
+        const precoEl = document.getElementById('orcamento-preco-total');
+        const lucroEl = document.getElementById('orcamento-lucro-total');
+        if (custoEl) custoEl.textContent = `R$ ${custoTotal.toFixed(2)}`;
+        if (precoEl) precoEl.textContent = `R$ ${precoTotal.toFixed(2)}`;
+        if (lucroEl) lucroEl.textContent = `R$ ${lucroTotal.toFixed(2)}`;
     }
-
+    
     // ===================================================================
     // --- 4. SETUP EVENT LISTENERS (Conecta os botões às funções) ---
     // ===================================================================
     function setupEventListeners() {
-        // Lógica das Abas
         document.querySelector('.tabs')?.addEventListener('click', (e) => {
             if (e.target.matches('.tab-link')) {
                 const tabName = e.target.dataset.tab;
@@ -182,7 +184,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // Aba Insumos
         document.getElementById('insumo-form')?.addEventListener('submit', async (e) => { e.preventDefault();
             const form = e.target;
             const novoInsumo = { id: Date.now(), nome: form.elements['insumo-nome'].value, precoTotal: parseFloat(form.elements['insumo-preco-total'].value), quantidadeTotal: parseFloat(form.elements['insumo-qtd-total'].value), unidadeMedida: form.elements['insumo-unidade'].value };
@@ -192,6 +193,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             await saveData(`Cadastrado insumo: ${novoInsumo.nome}`);
             form.reset(); renderInsumosList(); populateInsumoSelects();
         });
+
         document.getElementById('insumos-lista')?.addEventListener('change', async (e) => {
             if (e.target.matches('.insumo-preco-edit, .insumo-qtd-edit')) {
                 const itemDiv = e.target.closest('.insumo-item'); const insumoId = parseInt(itemDiv.dataset.id);
@@ -204,6 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
         });
+
         document.getElementById('insumos-lista')?.addEventListener('click', async (e) => {
             if (e.target.matches('.delete-btn')) { if (!confirm('Excluir este insumo?')) return;
                 const insumoId = parseInt(e.target.dataset.id); appData.insumos = appData.insumos.filter(i => i.id !== insumoId);
@@ -211,24 +214,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // Aba Serviços
         document.getElementById('sp-add-insumo-btn')?.addEventListener('click', () => {
             const insumoId = document.getElementById('sp-insumo-select').value; const quantidade = parseFloat(document.getElementById('sp-insumo-quantidade').value);
             if (!insumoId || !quantidade) { showToast('Selecione um insumo e a quantidade.', 'error'); return; }
             if (!insumosVinculadosCache.some(i => i.insumoId == insumoId)) { insumosVinculadosCache.push({ insumoId: parseInt(insumoId), quantidade }); renderInsumosVinculados(); }
         });
+        
         document.getElementById('sp-insumos-container')?.addEventListener('click', (e) => {
             if (e.target.matches('.delete-btn')) { const insumoIdToRemove = parseInt(e.target.dataset.insumoId); insumosVinculadosCache = insumosVinculadosCache.filter(i => i.insumoId !== insumoIdToRemove); renderInsumosVinculados(); }
         });
+        
         document.getElementById('servico-padrao-form')?.addEventListener('submit', async (e) => { e.preventDefault();
-            const form = e.target;
-            const nome = form.elements['sp-nome'].value;
+            const form = e.target; const nome = form.elements['sp-nome'].value;
             if (!nome) { showToast('O nome do serviço é obrigatório.', 'error'); return; }
-            const novoServico = { id: Date.now(), nome: nome, custoMaoDeObra: parseFloat(form.elements['sp-mao-de-obra'].value) || 0, custoImposto: parseFloat(form.elements['sp-imposto'].value) || 0, tempoEstimado: parseInt(form.elements['sp-tempo'].value) || 0, insumosVinculados: insumosVinculadosCache };
+            const novoServico = { id: Date.now(), nome, custoMaoDeObra: parseFloat(form.elements['sp-mao-de-obra'].value) || 0, custoImposto: parseFloat(form.elements['sp-imposto'].value) || 0, tempoEstimado: parseInt(form.elements['sp-tempo'].value) || 0, insumosVinculados: insumosVinculadosCache };
             appData.servicosPadrao.push(novoServico);
             await saveData(`Criado modelo de serviço: ${novoServico.nome}`);
             form.reset(); insumosVinculadosCache = []; renderInsumosVinculados(); renderServicosPadraoList(); populateServicoPadraoSelect();
         });
+        
         document.getElementById('servicos-padrao-lista')?.addEventListener('click', async (e) => {
             if (e.target.matches('.delete-btn')) { if (!confirm('Excluir este modelo?')) return;
                 const servicoId = parseInt(e.target.dataset.id); appData.servicosPadrao = appData.servicosPadrao.filter(sp => sp.id !== servicoId);
@@ -236,51 +240,55 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
         
-        // Aba Clientes
         document.getElementById('clientes-filter-input')?.addEventListener('input', (e) => renderClientesList(e.target.value));
+        
         document.getElementById('clientes-lista')?.addEventListener('click', (e) => {
             if (e.target.matches('.cliente-list-item')) {
                 const clienteId = parseInt(e.target.dataset.id);
-                const historico = appData.servicosPrestados.filter(sp => sp.clienteId === clienteId).sort((a,b) => new Date(b.data) - new Date(a.data));
-                document.getElementById('cliente-detalhes-nome').textContent = `Histórico de: ${e.target.textContent}`;
-                const container = document.getElementById('cliente-detalhes-historico'); container.innerHTML = '';
+                const historico = (appData.servicosPrestados || []).filter(sp => sp.clienteId === clienteId).sort((a,b) => new Date(b.data) - new Date(a.data));
+                const nomeEl = document.getElementById('cliente-detalhes-nome'); if (nomeEl) nomeEl.textContent = `Histórico de: ${e.target.textContent}`;
+                const container = document.getElementById('cliente-detalhes-historico'); if (!container) return; container.innerHTML = '';
                 if (historico.length > 0) {
                     historico.forEach(h => {
                         const item = document.createElement('div'); item.className = 'historico-servico-item';
                         const dataFormatada = h.data ? new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR') : 'Data não informada';
-                        item.innerHTML = `<span class="data">${dataFormatada}:</span> ${h.servicos.map(s=>s.nome).join(', ')} - <strong>Total: R$${h.precoTotal.toFixed(2)}</strong>`;
+                        item.innerHTML = `<span class="data">${dataFormatada}:</span> ${(h.servicos || []).map(s=>s.nome).join(', ')} - <strong>Total: R$${h.precoTotal.toFixed(2)}</strong>`;
                         container.appendChild(item);
                     });
-                } else { container.innerHTML = '<p class="empty-state">Nenhum serviço registrado para este cliente.</p>'; }
-                document.getElementById('cliente-detalhes-container').classList.remove('hidden');
+                } else { container.innerHTML = '<p class="empty-state">Nenhum serviço registrado.</p>'; }
+                document.getElementById('cliente-detalhes-container')?.classList.remove('hidden');
             }
         });
 
-        // Aba Lançamento/Orçamento
         document.getElementById('cliente-search')?.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
             const select = document.getElementById('cliente-select');
-            select.innerHTML = '';
+            if(!select) return; select.innerHTML = '';
             if (searchTerm.length > 0) {
-                const filtered = appData.clientes.filter(c => c.nome.toLowerCase().includes(searchTerm));
+                const filtered = (appData.clientes || []).filter(c => c.nome.toLowerCase().includes(searchTerm));
                 if (filtered.length > 0) { filtered.forEach(c => select.add(new Option(c.nome, c.id))); select.classList.remove('hidden'); } else { select.classList.add('hidden'); }
             } else { select.classList.add('hidden'); }
         });
+        
         document.getElementById('cliente-select')?.addEventListener('change', (e) => {
             const clienteId = e.target.value; const cliente = appData.clientes.find(c => c.id == clienteId);
             if (cliente) { orcamentoAtual.cliente = { id: cliente.id, nome: cliente.nome }; document.getElementById('cliente-search').value = cliente.nome; e.target.classList.add('hidden'); }
         });
-        document.getElementById('show-new-client-btn')?.addEventListener('click', () => { document.getElementById('cliente-new-name').classList.toggle('hidden'); });
+        
+        document.getElementById('show-new-client-btn')?.addEventListener('click', () => { document.getElementById('cliente-new-name')?.classList.toggle('hidden'); });
+        
         document.getElementById('add-servico-orcamento-btn')?.addEventListener('click', () => {
             const servicoId = document.getElementById('servico-select-orcamento').value; if (!servicoId) return;
-            const servico = appData.servicosPadrao.find(sp => sp.id == servicoId);
+            const servico = appData.servicosPadrao.find(sp => sp.id == servicoId); if(!servico) return;
             const custo = calcularCustoTotalServicoPadrao(servico);
-            orcamentoAtual.servicos.push({ tempId: Date.now(), servicoPadraoId: servico.id, nome: servico.nome, custo: custo, preco: custo });
+            orcamentoAtual.servicos.push({ tempId: Date.now(), servicoPadraoId: servico.id, nome: servico.nome, custo, preco: custo });
             renderOrcamentoAtual();
         });
+        
         document.getElementById('orcamento-itens-lista')?.addEventListener('click', (e) => {
             if(e.target.matches('.delete-btn')) { const tempId = parseInt(e.target.dataset.tempId); orcamentoAtual.servicos = orcamentoAtual.servicos.filter(s => s.tempId !== tempId); renderOrcamentoAtual(); }
         });
+        
         document.getElementById('orcamento-itens-lista')?.addEventListener('input', (e) => {
             if(e.target.matches('.item-preco-input')) {
                 const tempId = parseInt(e.target.dataset.tempId); const novoPreco = parseFloat(e.target.value) || 0;
@@ -288,6 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if(servico) servico.preco = novoPreco; updateOrcamentoTotal();
             }
         });
+        
         document.getElementById('orcamento-form')?.addEventListener('submit', async (e) => { e.preventDefault();
             const nomeNovoCliente = document.getElementById('cliente-new-name').value;
             if (nomeNovoCliente && (!orcamentoAtual.cliente || !orcamentoAtual.cliente.id)) {
@@ -313,7 +322,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function saveData(commitMessage) {
         showLoader(true);
         try {
-            const response = await api.saveFile(GITHUB_FILE_PATH, appData, fileSHA);
+            // BUG CORRIGIDO AQUI: A ordem dos argumentos estava errada.
+            const response = await api.saveFile(GITHUB_FILE_PATH, appData, commitMessage, fileSHA);
             fileSHA = response.content.sha;
             showToast('Operação salva com sucesso!');
         } catch (error) {
