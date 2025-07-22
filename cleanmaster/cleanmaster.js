@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function calcularCustoTotalServicoPadrao(servicoPadrao) {
         let custo = (servicoPadrao.custoMaoDeObra || 0) + (servicoPadrao.custoImposto || 0);
-        servicoPadrao.insumosVinculados.forEach(itemVinculado => {
-            const insumo = appData.insumos.find(i => i.id == itemVinculado.insumoId);
+        (servicoPadrao.insumosVinculados || []).forEach(itemVinculado => {
+            const insumo = (appData.insumos || []).find(i => i.id == itemVinculado.insumoId);
             if (insumo) custo += insumo.custoPorUnidade * itemVinculado.quantidade;
         });
         return custo;
@@ -64,11 +64,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             item.innerHTML = `
                 <span class="nome">${insumo.nome}</span>
                 <div class="editable-fields">
-                    <span>R$</span><input type="number" class="insumo-preco-edit" value="${insumo.precoTotal.toFixed(2)}" step="0.01">
-                    <span>/</span><input type="number" class="insumo-qtd-edit" value="${insumo.quantidadeTotal}" step="0.01">
+                    <span>R$</span><input type="number" class="insumo-preco-edit" value="${(insumo.precoTotal || 0).toFixed(2)}" step="0.01">
+                    <span>/</span><input type="number" class="insumo-qtd-edit" value="${insumo.quantidadeTotal || 0}" step="0.01">
                     <span>${insumo.unidadeMedida}</span>
                 </div>
-                <div class="insumo-custo-calculado">Custo: R$ ${insumo.custoPorUnidade.toFixed(2)}/${insumo.unidadeMedida}</div>
+                <div class="insumo-custo-calculado">Custo: R$ ${(insumo.custoPorUnidade || 0).toFixed(2)}/${insumo.unidadeMedida}</div>
                 <button type="button" class="delete-btn" data-id="${insumo.id}">&times;</button>
             `;
             lista.appendChild(item);
@@ -96,14 +96,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const select = document.getElementById('sp-insumo-select');
         if(!select) return;
         select.innerHTML = '<option value="">Selecione um insumo</option>';
-        appData.insumos.forEach(insumo => select.add(new Option(insumo.nome, insumo.id)));
+        (appData.insumos || []).forEach(insumo => select.add(new Option(insumo.nome, insumo.id)));
     }
     
     function populateServicoPadraoSelect() {
         const select = document.getElementById('servico-select-orcamento');
         if(!select) return;
         select.innerHTML = '<option value="">Selecione um serviço...</option>';
-        appData.servicosPadrao.forEach(sp => select.add(new Option(sp.nome, sp.id)));
+        (appData.servicosPadrao || []).forEach(sp => select.add(new Option(sp.nome, sp.id)));
     }
 
     function renderInsumosVinculados() {
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(!container) return;
         container.innerHTML = '';
         insumosVinculadosCache.forEach(item => {
-            const insumoData = appData.insumos.find(i => i.id == item.insumoId);
+            const insumoData = (appData.insumos || []).find(i => i.id == item.insumoId);
             if(!insumoData) return;
             const div = document.createElement('div');
             div.className = 'item-vinculado';
@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('orcamento-form')?.addEventListener('submit', async (e) => { e.preventDefault();
             const nomeNovoCliente = document.getElementById('cliente-new-name').value;
             if (nomeNovoCliente && (!orcamentoAtual.cliente || !orcamentoAtual.cliente.id)) {
-                const novoCliente = { id: Date.now(), nome: nomeNovoCliente }; appData.clientes.push(novoCliente);
+                const novoCliente = { id: Date.now(), nome: nomeNovoCliente }; (appData.clientes = appData.clientes || []).push(novoCliente);
                 orcamentoAtual.cliente = { id: novoCliente.id, nome: novoCliente.nome };
             }
             if (!orcamentoAtual.cliente || !orcamentoAtual.cliente.id) { showToast('Selecione ou cadastre um cliente.', 'error'); return; }
@@ -308,11 +308,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const totais = orcamentoAtual.servicos.reduce((acc, s) => { acc.custo += s.custo; acc.preco += s.preco; return acc; }, { custo: 0, preco: 0 });
             const servicoPrestado = { id: Date.now(), data: document.getElementById('orcamento-data').value, clienteId: orcamentoAtual.cliente.id, clienteNome: orcamentoAtual.cliente.nome, servicos: orcamentoAtual.servicos.map(({tempId, ...rest}) => rest), custoTotal: totais.custo, precoTotal: totais.preco, lucroTotal: totais.preco - totais.custo };
-            appData.servicosPrestados.push(servicoPrestado);
+            (appData.servicosPrestados = appData.servicosPrestados || []).push(servicoPrestado);
             await saveData(`Serviço de R$${totais.preco.toFixed(2)} para ${orcamentoAtual.cliente.nome}`);
             
             orcamentoAtual = { cliente: { id: null, nome: null }, servicos: [] }; e.target.reset(); renderOrcamentoAtual(); renderAll();
-            document.getElementById('cliente-new-name').classList.add('hidden'); document.getElementById('cliente-search').value = '';
+            document.getElementById('cliente-new-name')?.classList.add('hidden'); document.getElementById('cliente-search').value = '';
         });
     }
 
@@ -322,7 +322,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function saveData(commitMessage) {
         showLoader(true);
         try {
-            // BUG CORRIGIDO AQUI: A ordem dos argumentos estava errada.
             const response = await api.saveFile(GITHUB_FILE_PATH, appData, commitMessage, fileSHA);
             fileSHA = response.content.sha;
             showToast('Operação salva com sucesso!');
