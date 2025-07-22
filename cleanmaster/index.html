@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean Master</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="loader" class="loader-overlay">
+        <div class="loader"></div>
+    </div>
+
+    <header>
+        <a href="../" class="back-button">&larr; Voltar</a>
+        <h1>Clean Master</h1>
+    </header>
+
+    <main class="container">
+        <div class="tabs">
+            <button class="tab-link active" onclick="openTab(event, 'Orcamento')">Orçamento</button>
+            <button class="tab-link" onclick="openTab(event, 'Servicos')">Serviços</button>
+            <button class="tab-link" onclick="openTab(event, 'Relatorio')">Relatório</button>
+        </div>
+
+        <div id="Orcamento" class="tab-content active">
+            <h2>Gerador de Orçamento</h2>
+            <form id="orcamento-form">
+                <input type="text" id="orcamento-cliente" placeholder="Nome do Cliente" required>
+                <textarea id="orcamento-itens" rows="4" placeholder="Descreva os itens do serviço (ex: Limpeza de sofá 3 lugares, Impermeabilização de 2 poltronas)" required></textarea>
+                <input type="number" id="orcamento-valor" placeholder="Valor Total do Serviço (R$)" step="0.01" required>
+                <button type="submit">Gerar Orçamento Compartilhável</button>
+            </form>
+            <div id="orcamento-resultado" class="hidden">
+                <h3>Copie e compartilhe!</h3>
+                <pre id="orcamento-texto"></pre>
+                <button id="copiar-orcamento">Copiar Texto</button>
+            </div>
+        </div>
+
+        <div id="Servicos" class="tab-content">
+            <h2>Lançar Novo Serviço</h2>
+            <form id="servico-form">
+                 <input type="date" id="servico-data" required>
+                 <input type="text" id="servico-cliente" placeholder="Nome do Cliente" required>
+                 <input type="text" id="servico-descricao" placeholder="Serviço Realizado" required>
+                 <input type="number" id="servico-valor" placeholder="Valor Cobrado (R$)" required>
+                 
+                 <h4>Custos com Produtos/Materiais</h4>
+                 <div id="servico-custos-container">
+                     </div>
+                 <button type="button" id="add-custo-btn">Adicionar Custo</button>
+                 
+                 <button type="submit" class="submit-btn">Salvar Serviço</button>
+            </form>
+        </div>
+
+        <div id="Relatorio" class="tab-content">
+            <h2>Relatório de Lucratividade</h2>
+            <div class="filters">
+                <input type="month" id="relatorio-mes">
+            </div>
+            <div class="summary-card">
+                <div class="summary-item">
+                    <span>Faturamento Bruto:</span>
+                    <span id="relatorio-faturamento">R$ 0,00</span>
+                </div>
+                <div class="summary-item">
+                    <span>Total de Custos:</span>
+                    <span id="relatorio-custos">R$ 0,00</span>
+                </div>
+                <div class="summary-item lucro">
+                    <span>Lucro Líquido:</span>
+                    <span id="relatorio-lucro">R$ 0,00</span>
+                </div>
+            </div>
+             <h3>Serviços do Período</h3>
+             <div id="relatorio-servicos-lista"></div>
+        </div>
+    </main>
+
+    <script src="../js/github-api.js"></script>
+    <script src="cleanmaster.js"></script>
+</body>
+</html>
