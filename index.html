@@ -17,7 +17,7 @@
         </header>
 
         <main class="options-container">
-            <a href="/despesas/" class="option-card">
+            <a href="despesas/" class="option-card">
                 <div class="icon-container personal">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-wallet2" viewBox="0 0 16 16">
                         <path d="M12.136.326A1.5 1.5 0 0 1 14 1.78V3h.5A1.5 1.5 0 0 1 16 4.5v7a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 11.5v-7A1.5 1.5 0 0 1 1.5 3H2V1.78a1.5 1.5 0 0 1 1.864-1.454l8.272 1.99a.5.5 0 0 1 .136-.326zM13 3H3v.5a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5V3H1.5a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.5-.5H14v.5a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5V3z"/>
@@ -27,7 +27,7 @@
                 <p>Controle suas finanças e gastos do dia a dia.</p>
             </a>
 
-            <a href="/cleanmaster/" class="option-card">
+            <a href="cleanmaster/" class="option-card">
                 <div class="icon-container business">
                      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-water" viewBox="0 0 16 16">
                         <path d="M.066 6.547a.5.5 0 0 1 .494-.495l4.33-.866A1.5 1.5 0 0 1 6.5 6.81l3.056 6.113a.5.5 0 0 1-.94.3l-3.056-6.113a.5.5 0 0 0-.58-.33l-4.33.866a.5.5 0 0 1-.495-.495zM8.5 5.29a1.5 1.5 0 0 1 2.025-1.12l2.915.972a.5.5 0 0 1 .306.753l-1.5 2.25a.5.5 0 0 1-.753-.306l1.5-2.25L10.5 5.5a.5.5 0 0 0-.475-.21z"/>
@@ -39,13 +39,13 @@
             </a>
         </main>
          <div class="setup-link-container">
-            <a href="/setup/">Configurar Acesso ao GitHub</a>
+             <a href="setup/">Configurar Acesso ao GitHub</a>
         </div>
     </div>
     <script>
-        // Redireciona para a configuração se não houver dados salvos
+        // CORREÇÃO AQUI: caminho para setup/
         if (!localStorage.getItem('github_config')) {
-            window.location.href = '/setup/';
+            window.location.href = 'setup/';
         }
     </script>
 </body>
