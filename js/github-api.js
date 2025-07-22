@@ -1,18 +1,10 @@
-/**
- * GitHub API Helper para carregar e salvar dados em um repositório.
- * Requer que as credenciais estejam salvas em localStorage sob a chave 'github_config'.
- */
 class GitHubAPI {
     constructor() {
         const config = JSON.parse(localStorage.getItem('github_config'));
         if (!config) {
             alert('Configuração do GitHub não encontrada. Redirecionando para a página de setup.');
-            
-            // --- CORREÇÃO 1: Caminho de redirecionamento ---
-            // Descobre o nome do repositório a partir da URL para criar o link correto
-            const repoName = window.location.pathname.split('/')[1];
+            const repoName = window.location.pathname.split('/')[1] || 'despesas';
             window.location.href = `/${repoName}/setup/`;
-
             throw new Error("GitHub config not found.");
         }
         
@@ -44,8 +36,16 @@ class GitHubAPI {
             }
 
             const data = await response.json();
-            const content = JSON.parse(decodeURIComponent(escape(atob(data.content))));
-            return { content, sha: data.sha };
+
+            // --- MELHORIA DE ROBUSTEZ AQUI ---
+            // Verifica se o conteúdo existe e não está vazio antes de tentar decodificar
+            if (data.content && data.content.trim() !== '') {
+                const content = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+                return { content, sha: data.sha };
+            } else {
+                // Se o arquivo estiver vazio ou não tiver conteúdo, retorna nulo para ser tratado como um arquivo novo
+                return { content: null, sha: data.sha };
+            }
 
         } catch (error) {
             console.error("Erro em getFile:", error);
@@ -55,16 +55,11 @@ class GitHubAPI {
 
     async saveFile(filePath, content, commitMessage, sha = null) {
         try {
-            // --- CORREÇÃO 2: Codificação para aceitar acentos e caracteres especiais ---
             const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
-
             const body = {
                 message: commitMessage,
                 content: contentBase64,
-                committer: {
-                    name: 'Gerenciador Web App',
-                    email: 'app@example.com'
-                }
+                committer: { name: 'Gerenciador Web App', email: 'app@example.com' }
             };
 
             if (sha) {
