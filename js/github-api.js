@@ -7,7 +7,12 @@ class GitHubAPI {
         const config = JSON.parse(localStorage.getItem('github_config'));
         if (!config) {
             alert('Configuração do GitHub não encontrada. Redirecionando para a página de setup.');
-            window.location.href = '/setup/';
+            
+            // --- CORREÇÃO 1: Caminho de redirecionamento ---
+            // Descobre o nome do repositório a partir da URL para criar o link correto
+            const repoName = window.location.pathname.split('/')[1];
+            window.location.href = `/${repoName}/setup/`;
+
             throw new Error("GitHub config not found.");
         }
         
@@ -21,11 +26,6 @@ class GitHubAPI {
         this.apiUrl = `https://api.github.com/repos/${this.username}/${this.repo}/contents/`;
     }
 
-    /**
-     * Busca o conteúdo de um arquivo no repositório.
-     * @param {string} filePath - O caminho para o arquivo no repositório (ex: 'data/despesas.json').
-     * @returns {Promise<object>} - Um objeto com o conteúdo decodificado e o SHA do arquivo.
-     */
     async getFile(filePath) {
         try {
             const response = await fetch(this.apiUrl + filePath, {
@@ -34,17 +34,17 @@ class GitHubAPI {
             });
 
             if (response.status === 404) {
-                // Arquivo não existe, retorna null para que possa ser criado
                 return { content: null, sha: null };
             }
 
             if (!response.ok) {
+                const errorData = await response.json();
+                console.error("API Error Response:", errorData);
                 throw new Error(`Erro ao buscar o arquivo: ${response.statusText}`);
             }
 
             const data = await response.json();
-            // Conteúdo vem em base64, precisamos decodificar.
-            const content = JSON.parse(atob(data.content));
+            const content = JSON.parse(decodeURIComponent(escape(atob(data.content))));
             return { content, sha: data.sha };
 
         } catch (error) {
@@ -53,18 +53,10 @@ class GitHubAPI {
         }
     }
 
-    /**
-     * Salva (cria ou atualiza) um arquivo no repositório.
-     * @param {string} filePath - O caminho para o arquivo (ex: 'data/despesas.json').
-     * @param {object} content - O objeto JavaScript para ser salvo como JSON.
-     * @param {string} commitMessage - A mensagem do commit.
-     * @param {string|null} sha - O SHA do arquivo, necessário para atualização. Se null, cria um novo arquivo.
-     * @returns {Promise<object>} - A resposta da API do GitHub.
-     */
     async saveFile(filePath, content, commitMessage, sha = null) {
         try {
-            // Converte o conteúdo para uma string JSON e depois para base64.
-            const contentBase64 = btoa(JSON.stringify(content, null, 2));
+            // --- CORREÇÃO 2: Codificação para aceitar acentos e caracteres especiais ---
+            const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
 
             const body = {
                 message: commitMessage,
@@ -75,7 +67,6 @@ class GitHubAPI {
                 }
             };
 
-            // Se o SHA for fornecido, é uma atualização.
             if (sha) {
                 body.sha = sha;
             }
