@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": 1753197911402,
+    "descricao": "teste (1/2)",
+    "valor": 0.01,
+    "data": "2025-07-22",
+    "categoria": "Alimentação"
+  },
+  {
+    "id": 1753197911403,
+    "descricao": "teste (2/2)",
+    "valor": 0.01,
+    "data": "2025-08-22",
+    "categoria": "Alimentação"
+  }
+]
