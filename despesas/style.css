@@ -1,0 +1,43 @@
+/* ... (Inclua aqui estilos base, como os da raiz) ... */
+body { font-family: 'Roboto', sans-serif; background-color: #f4f6f8; margin: 0; }
+header { background-color: #2c3e50; color: white; padding: 15px 20px; display: flex; align-items: center; position: sticky; top: 0; z-index: 100;}
+header h1 { margin: 0; font-size: 1.2rem; text-align: center; flex-grow: 1; }
+.back-button { color: white; text-decoration: none; font-size: 1.5rem; position: absolute; }
+.container { padding: 20px; }
+.summary-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+.summary-card h2 { margin-top: 0; font-size: 1.1rem; color: #34495e; border-bottom: 1px solid #ecf0f1; padding-bottom: 10px; margin-bottom: 15px; }
+.summary-item { display: flex; justify-content: space-between; font-size: 1rem; margin-bottom: 10px; }
+.summary-item span:first-child { color: #7f8c8d; }
+.summary-item span:last-child { font-weight: 500; color: #e74c3c; }
+#total-futuro { color: #f39c12; }
+
+.expenses-section h2 { font-size: 1.1rem; color: #34495e; margin-bottom: 15px; }
+.filters { margin-bottom: 20px; }
+.filters input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+
+.expense-item { display: flex; align-items: center; background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.expense-category-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; margin-right: 15px; flex-shrink: 0; }
+.expense-details { flex-grow: 1; }
+.expense-details p { margin: 0; }
+.expense-desc { font-weight: 500; }
+.expense-cat-date { font-size: 0.85rem; color: #7f8c8d; }
+.expense-amount { font-size: 1rem; font-weight: 500; color: #e74c3c; }
+.empty-state { text-align: center; color: #95a5a6; padding: 40px 20px; background-color: #fff; border-radius: 8px; }
+
+/* FAB - Floating Action Button */
+.fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background-color: #3498db; color: white; border: none; border-radius: 50%; font-size: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; display: flex; justify-content: center; align-items: center; }
+
+/* Modal */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
+.modal-content { background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 400px; }
+.modal-content h2 { margin-top: 0; }
+.close-button { float: right; font-size: 1.5rem; cursor: pointer; }
+#expense-form input, #expense-form select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+#expense-form button { width: 100%; padding: 15px; background-color: #27ae60; color: white; border: none; border-radius: 5px; font-size: 1rem; }
+.installments-section { background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 15px; }
+.hidden { display: none; }
+
+/* Loader */
+.loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+.loader { border: 8px solid #f3f3f3; border-radius: 50%; border-top: 8px solid #3498db; width: 60px; height: 60px; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }

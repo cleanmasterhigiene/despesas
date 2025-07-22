@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuração do GitHub</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="setup-container">
+        <h1>Configuração do GitHub</h1>
+        <p>Para salvar seus dados, a aplicação precisa de um Token de Acesso Pessoal (PAT). Siga as instruções abaixo.</p>
+
+        <form id="github-form">
+            <div class="form-group">
+                <label for="username">Seu nome de usuário no GitHub</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label for="repo">Nome do Repositório</label>
+                <input type="text" id="repo" required>
+            </div>
+            <div class="form-group">
+                <label for="pat">Token de Acesso Pessoal (PAT)</label>
+                <input type="password" id="pat" required>
+            </div>
+
+            <button type="submit">Conectar e Salvar</button>
+        </form>
+         <div class="instructions">
+            <h3>Como gerar seu Token:</h3>
+            <ol>
+                <li>Vá para <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a>.</li>
+                <li>Dê um nome para o token (ex: "GerenciadorFinanceiro").</li>
+                <li>Selecione a expiração (recomendado 30 ou 60 dias).</li>
+                <li>Na seção "Repository access", selecione "Only select repositories" e escolha o repositório deste site.</li>
+                <li>Clique em "Repository permissions", abra, e marque a permissão **"Contents"** como **"Read and write"**.</li>
+                <li>Clique em "Generate token" e copie o token gerado. Cole-o no campo acima.</li>
+            </ol>
+        </div>
+    </div>
+    <script src="setup.js"></script>
+</body>
+</html>
