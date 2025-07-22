@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Despesas Pessoais</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/despesas/despesas/style.css">
 </head>
 <body>
     <div id="loader" class="loader-overlay">
@@ -12,7 +12,7 @@
     </div>
     
     <header>
-        <a href="/" class="back-button">&larr; Voltar</a>
+        <a href="/despesas/" class="back-button">&larr; Voltar</a>
         <h1>Minhas Despesas</h1>
     </header>
 
@@ -28,19 +28,14 @@
                 <span id="total-futuro">R$ 0,00</span>
             </div>
         </section>
-        
         <button id="add-expense-btn" class="fab">+</button>
-
         <section class="expenses-section">
             <h2>Lançamentos</h2>
             <div class="filters">
                 <input type="month" id="filter-month" />
             </div>
-            <div id="expenses-list">
-                <p class="empty-state">Nenhuma despesa encontrada para este período.</p>
-            </div>
+            <div id="expenses-list"></div>
         </section>
-
         <div id="modal" class="modal-overlay">
             <div class="modal-content">
                 <span class="close-button">&times;</span>
@@ -49,11 +44,8 @@
                     <input type="text" id="descricao" placeholder="Descrição (ex: Supermercado)" required>
                     <input type="number" id="valor" placeholder="Valor (R$)" step="0.01" required>
                     <input type="date" id="data" required>
-                    
                     <input type="text" id="categoria-search" placeholder="Buscar categoria...">
-                    <select id="categoria" required>
-                        </select>
-                    
+                    <select id="categoria" required></select>
                     <div class="installments-section">
                         <label for="parcelado">
                             <input type="checkbox" id="parcelado"> Compra Parcelada?
@@ -62,14 +54,13 @@
                             <input type="number" id="num-parcelas" placeholder="Nº de Parcelas" min="2">
                         </div>
                     </div>
-                    
                     <button type="submit">Adicionar Despesa</button>
                 </form>
             </div>
         </div>
     </main>
 
-    <script src="/js/github-api.js"></script>
-    <script src="despesas.js"></script>
+    <script src="/despesas/js/github-api.js"></script>
+    <script src="/despesas/despesas/despesas.js"></script>
 </body>
 </html>
