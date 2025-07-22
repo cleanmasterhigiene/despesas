@@ -1,171 +1,183 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- ESTADO GLOBAL ---
-    let appData = { servicos: [], produtos: [], despesasFixas: [] };
-    let fileSHA = null;
-    const GITHUB_FILE_PATH = 'data/cleanmaster.json';
-    const api = new GitHubAPI();
-
-    // --- ELEMENTOS DO DOM ---
+document.addEventListener('DOMContentLoaded', async () => {
+    // --- ELEMENTOS GLOBAIS ---
     const loader = document.getElementById('loader');
-    const relatorioMesInput = document.getElementById('relatorio-mes');
+    const api = new GitHubAPI();
+    const GITHUB_FILE_PATH = 'data/cleanmaster.json';
 
-    // --- FUNÇÕES GERAIS ---
-    const showLoader = (show = true) => loader.style.display = show ? 'flex' : 'none';
+    // --- ESTADO DA APLICAÇÃO ---
+    let appData = { insumos: [], servicosPrestados: [] };
+    let fileSHA = null;
+    let insumosUsadosNoServico = []; // Array temporário para o serviço atual
+
+    // --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
+    const showLoader = (show) => loader.style.display = show ? 'flex' : 'none';
     
-    const saveData = async (commitMessage) => {
-        showLoader();
+    window.openTab = (evt, tabName) => {
+        document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = "none");
+        document.querySelectorAll('.tab-link').forEach(tl => tl.className = tl.className.replace(" active", ""));
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+        document.querySelector('.tab-link.active').click(); // Garante que a primeira aba seja exibida
+    };
+
+    function renderInsumosList() {
+        const lista = document.getElementById('insumos-lista');
+        const select = document.getElementById('insumo-select');
+        lista.innerHTML = '';
+        select.innerHTML = '<option value="">Selecione um insumo</option>';
+        
+        appData.insumos.forEach(insumo => {
+            // Renderiza na lista de cadastrados
+            const item = document.createElement('div');
+            item.className = 'insumo-item';
+            item.innerHTML = `
+                <div class="insumo-info">
+                    <div class="nome">${insumo.nome}</div>
+                    <div class="custo">Custo: R$ ${insumo.custoPorUnidade.toFixed(2)} por ${insumo.unidadeMedida}</div>
+                </div>
+                <button type="button" class="delete-btn" data-id="${insumo.id}">&times;</button>
+            `;
+            lista.appendChild(item);
+            
+            // Popula o select para adicionar no serviço
+            const option = document.createElement('option');
+            option.value = insumo.id;
+            option.textContent = insumo.nome;
+            select.appendChild(option);
+        });
+    }
+
+    function renderInsumosUsados() {
+        const container = document.getElementById('insumos-usados-container');
+        container.innerHTML = '';
+        let custoTotal = 0;
+        
+        insumosUsadosNoServico.forEach(item => {
+            const template = document.getElementById('insumo-usado-template');
+            const clone = template.content.cloneNode(true);
+            const insumoData = appData.insumos.find(i => i.id == item.insumoId);
+            
+            clone.querySelector('span').textContent = `${item.quantidade} ${insumoData.unidadeMedida} de ${insumoData.nome} (Custo: R$ ${item.custo.toFixed(2)})`;
+            clone.querySelector('.delete-btn').dataset.id = item.tempId;
+            container.appendChild(clone);
+            custoTotal += item.custo;
+        });
+        
+        document.getElementById('servico-custo-total').textContent = `R$ ${custoTotal.toFixed(2)}`;
+        updateLucro();
+    }
+
+    // --- FUNÇÕES DE CÁLCULO ---
+    function updateLucro() {
+        const precoCobrado = parseFloat(document.getElementById('servico-preco-cobrado').value) || 0;
+        const custoTotal = insumosUsadosNoServico.reduce((acc, item) => acc + item.custo, 0);
+        const lucro = precoCobrado - custoTotal;
+        document.getElementById('servico-lucro-liquido').textContent = `R$ ${lucro.toFixed(2)}`;
+    }
+
+    // --- EVENT HANDLERS ---
+    document.getElementById('insumo-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nome = document.getElementById('insumo-nome').value;
+        const precoTotal = parseFloat(document.getElementById('insumo-preco-total').value);
+        const quantidadeTotal = parseFloat(document.getElementById('insumo-qtd-total').value);
+        const unidadeMedida = document.getElementById('insumo-unidade').value;
+
+        const novoInsumo = {
+            id: Date.now(),
+            nome,
+            precoTotal,
+            quantidadeTotal,
+            unidadeMedida,
+            custoPorUnidade: precoTotal / quantidadeTotal
+        };
+
+        appData.insumos.push(novoInsumo);
+        await saveData(`Cadastrado novo insumo: ${nome}`);
+        e.target.reset();
+        renderInsumosList();
+    });
+    
+    document.getElementById('add-insumo-btn').addEventListener('click', () => {
+        const insumoId = document.getElementById('insumo-select').value;
+        const quantidade = parseFloat(document.getElementById('insumo-quantidade').value);
+
+        if (!insumoId || !quantidade || quantidade <= 0) {
+            alert('Selecione um insumo e informe uma quantidade válida.');
+            return;
+        }
+
+        const insumo = appData.insumos.find(i => i.id == insumoId);
+        const custoItem = insumo.custoPorUnidade * quantidade;
+        
+        insumosUsadosNoServico.push({
+            tempId: Date.now(), // ID temporário para remoção da UI
+            insumoId: insumo.id,
+            quantidade: quantidade,
+            custo: custoItem
+        });
+        
+        renderInsumosUsados();
+        document.getElementById('insumo-quantidade').value = '';
+    });
+    
+    document.getElementById('insumos-usados-container').addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-btn')) {
+            const tempIdToRemove = parseInt(e.target.dataset.id);
+            insumosUsadosNoServico = insumosUsadosNoServico.filter(i => i.tempId !== tempIdToRemove);
+            renderInsumosUsados();
+        }
+    });
+    
+    document.getElementById('servico-preco-cobrado').addEventListener('input', updateLucro);
+
+    document.getElementById('servico-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const custoTotal = insumosUsadosNoServico.reduce((acc, item) => acc + item.custo, 0);
+        const precoCobrado = parseFloat(document.getElementById('servico-preco-cobrado').value);
+        
+        if (precoCobrado < custoTotal) {
+            if (!confirm(`Atenção! O preço cobrado (R$${precoCobrado.toFixed(2)}) é menor que o custo (R$${custoTotal.toFixed(2)}), resultando em prejuízo. Deseja continuar?`)) {
+                return;
+            }
+        }
+        
+        const novoServico = {
+            id: Date.now(),
+            data: document.getElementById('servico-data').value,
+            cliente: document.getElementById('servico-cliente').value,
+            descricao: document.getElementById('servico-descricao').value,
+            precoCobrado: precoCobrado,
+            custoTotalInsumos: custoTotal,
+            lucro: precoCobrado - custoTotal,
+            insumosUsados: insumosUsadosNoServico.map(({ tempId, ...rest }) => rest) // Remove o tempId
+        };
+        
+        appData.servicosPrestados.push(novoServico);
+        await saveData(`Serviço para ${novoServico.cliente} finalizado.`);
+        e.target.reset();
+        insumosUsadosNoServico = [];
+        renderInsumosUsados();
+    });
+
+    // --- PERSISTÊNCIA DE DADOS ---
+    async function saveData(commitMessage) {
+        showLoader(true);
         try {
             const response = await api.saveFile(GITHUB_FILE_PATH, appData, commitMessage, fileSHA);
             fileSHA = response.content.sha;
-            alert('Dados salvos com sucesso!');
+            alert('Operação salva com sucesso no GitHub!');
         } catch (error) {
             console.error('Erro ao salvar dados:', error);
             alert('Falha ao salvar. Verifique o console para detalhes.');
         } finally {
             showLoader(false);
         }
-    };
-
-    // --- LÓGICA DAS ABAS ---
-    window.openTab = (evt, tabName) => {
-        document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = "none");
-        document.querySelectorAll('.tab-link').forEach(tl => tl.className = tl.className.replace(" active", ""));
-        document.getElementById(tabName).style.display = "block";
-        evt.currentTarget.className += " active";
-    };
-
-    // --- LÓGICA DE ORÇAMENTO ---
-    const orcamentoForm = document.getElementById('orcamento-form');
-    orcamentoForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const cliente = document.getElementById('orcamento-cliente').value;
-        const itens = document.getElementById('orcamento-itens').value;
-        const valor = parseFloat(document.getElementById('orcamento-valor').value);
-
-        const texto = `Olá ${cliente}, tudo bem?\n\nSegue seu orçamento com a Clean Master Higienização:\n\nServiços:\n- ${itens.replace(/\n/g, '\n- ')}\n\nValor Total: R$ ${valor.toFixed(2)}\n\nQualquer dúvida, estou à disposição!`;
-
-        document.getElementById('orcamento-texto').textContent = texto;
-        document.getElementById('orcamento-resultado').classList.remove('hidden');
-    });
-
-    document.getElementById('copiar-orcamento').addEventListener('click', () => {
-        const texto = document.getElementById('orcamento-texto').textContent;
-        navigator.clipboard.writeText(texto).then(() => {
-            alert('Orçamento copiado para a área de transferência!');
-        });
-    });
-
-    // --- LÓGICA DE SERVIÇOS ---
-    const servicoForm = document.getElementById('servico-form');
-    const custosContainer = document.getElementById('servico-custos-container');
-    
-    document.getElementById('add-custo-btn').addEventListener('click', () => {
-        const custoDiv = document.createElement('div');
-        custoDiv.className = 'custo-item';
-        
-        const select = document.createElement('select');
-        appData.produtos.forEach(p => {
-            const option = document.createElement('option');
-            option.value = p.id;
-            option.textContent = `${p.nome} (Custo: R$${p.custo.toFixed(2)})`;
-            select.appendChild(option);
-        });
-        
-        const quantidadeInput = document.createElement('input');
-        quantidadeInput.type = 'number';
-        quantidadeInput.placeholder = 'Qtd';
-        quantidadeInput.step = '0.1';
-        
-        custoDiv.appendChild(select);
-        custoDiv.appendChild(quantidadeInput);
-        custosContainer.appendChild(custoDiv);
-    });
-
-    servicoForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const custos = [];
-        document.querySelectorAll('.custo-item').forEach(item => {
-            const produtoId = item.querySelector('select').value;
-            const quantidade = parseFloat(item.querySelector('input').value);
-            if (produtoId && quantidade > 0) {
-                 const produto = appData.produtos.find(p => p.id == produtoId);
-                 custos.push({
-                     produtoId: parseInt(produtoId),
-                     nome: produto.nome,
-                     quantidade: quantidade,
-                     custoTotal: produto.custo * quantidade
-                 });
-            }
-        });
-
-        const novoServico = {
-            id: Date.now(),
-            data: document.getElementById('servico-data').value,
-            cliente: document.getElementById('servico-cliente').value,
-            descricao: document.getElementById('servico-descricao').value,
-            valor: parseFloat(document.getElementById('servico-valor').value),
-            custos: custos
-        };
-        
-        appData.servicos.push(novoServico);
-        await saveData(`Adicionado serviço para ${novoServico.cliente}`);
-        servicoForm.reset();
-        custosContainer.innerHTML = '';
-        renderRelatorio();
-    });
-
-    // --- LÓGICA DE RELATÓRIO ---
-    const renderRelatorio = () => {
-        const [year, month] = relatorioMesInput.value.split('-');
-        
-        const servicosDoPeriodo = appData.servicos.filter(s => {
-            const d = new Date(s.data + 'T00:00:00');
-            return d.getFullYear() == year && (d.getMonth() + 1) == month;
-        });
-
-        let faturamento = 0;
-        let custos = 0;
-        
-        servicosDoPeriodo.forEach(s => {
-            faturamento += s.valor;
-            s.custos.forEach(c => {
-                custos += c.custoTotal;
-            });
-        });
-        
-        const lucro = faturamento - custos;
-        
-        document.getElementById('relatorio-faturamento').textContent = `R$ ${faturamento.toFixed(2)}`;
-        document.getElementById('relatorio-custos').textContent = `R$ ${custos.toFixed(2)}`;
-        document.getElementById('relatorio-lucro').textContent = `R$ ${lucro.toFixed(2)}`;
-        
-        const listaEl = document.getElementById('relatorio-servicos-lista');
-        listaEl.innerHTML = '';
-        if (servicosDoPeriodo.length > 0) {
-            servicosDoPeriodo.forEach(s => {
-                const custoServico = s.custos.reduce((acc, c) => acc + c.custoTotal, 0);
-                const item = document.createElement('div');
-                item.className = 'servico-item';
-                item.innerHTML = `<strong>${s.cliente}</strong> (${s.data}): ${s.descricao} <br>
-                                  Valor: R$${s.valor.toFixed(2)} | Custo: R$${custoServico.toFixed(2)}`;
-                listaEl.appendChild(item);
-            });
-        } else {
-            listaEl.innerHTML = '<p>Nenhum serviço neste período.</p>';
-        }
-    };
-
-    relatorioMesInput.addEventListener('change', renderRelatorio);
+    }
 
     // --- INICIALIZAÇÃO ---
-    const init = async () => {
-        showLoader();
-        // Seta data e mês padrão
-        const today = new Date().toISOString();
-        document.getElementById('servico-data').value = today.slice(0, 10);
-        relatorioMesInput.value = today.slice(0, 7);
-
+    async function init() {
+        showLoader(true);
         try {
             const { content, sha } = await api.getFile(GITHUB_FILE_PATH);
             if (content) {
@@ -173,12 +185,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 fileSHA = sha;
             }
         } catch (error) {
-            console.error("Não foi possível carregar os dados. Pode ser a primeira vez.", error);
+            console.error("Não foi possível carregar os dados.", error);
+            alert("Falha ao carregar os dados. Verifique a configuração e o console.");
         } finally {
-            renderRelatorio();
+            renderInsumosList();
             showLoader(false);
+            // Simula um clique na primeira aba para garantir que o conteúdo seja exibido
+            document.querySelector('.tab-link.active').click();
         }
-    };
-
+    }
+    
     init();
 });
