@@ -23,10 +23,122 @@
             <button class="tab-link" data-tab="Insumos">Insumos</button>
         </div>
 
-        </main>
+        <div id="Lancamento" class="tab-content active">
+            <h2>Criar Orçamento / Lançar Serviço</h2>
+            <form id="orcamento-form" class="card">
+                <h4>1. Cliente</h4>
+                <div class="inline-fields">
+                    <input type="text" id="cliente-search" placeholder="Buscar cliente existente...">
+                    <button type="button" id="show-new-client-btn">Novo +</button>
+                </div>
+                <select id="cliente-select" class="hidden"></select>
+                <input type="text" id="cliente-new-name" class="hidden" placeholder="Nome do Novo Cliente">
+                
+                <div class="divider"></div>
+
+                <h4>2. Serviços</h4>
+                <div class="inline-fields">
+                    <select id="servico-select-orcamento"></select>
+                    <button type="button" id="add-servico-orcamento-btn">Adicionar</button>
+                </div>
+                
+                <div class="orcamento-itens-container">
+                    <div id="orcamento-itens-lista"></div>
+                </div>
+
+                <div class="divider"></div>
+                
+                <h4>3. Resumo Financeiro</h4>
+                <div class="finance-summary">
+                    <div class="finance-row"><span>Custo Total:</span> <strong id="orcamento-custo-total">R$ 0,00</strong></div>
+                    <div class="finance-row"><span>Preço Total:</span> <strong id="orcamento-preco-total">R$ 0,00</strong></div>
+                    <div class="finance-row lucro"><span>Lucro Total:</span> <strong id="orcamento-lucro-total">R$ 0,00</strong></div>
+                </div>
+
+                <div class="divider"></div>
+
+                <input type="date" id="orcamento-data" required>
+                <button type="submit" class="submit-btn">Salvar Serviço Prestado</button>
+            </form>
+        </div>
+
+        <div id="Clientes" class="tab-content">
+            <div class="card">
+                <h3>Meus Clientes</h3>
+                <input type="text" id="clientes-filter-input" placeholder="Filtrar clientes...">
+                <div id="clientes-lista"></div>
+            </div>
+            <div id="cliente-detalhes-container" class="hidden">
+                 <div class="card">
+                     <h3 id="cliente-detalhes-nome"></h3>
+                     <div id="cliente-detalhes-historico"></div>
+                 </div>
+            </div>
+        </div>
+
+        <div id="Servicos" class="tab-content">
+             <div class="card">
+                <h3>Criar/Editar Modelo de Serviço</h3>
+                <form id="servico-padrao-form">
+                    <input type="text" id="sp-nome" placeholder="Nome do Serviço (ex: Limpeza Sofá 3 Lugares)" required>
+                    <div class="inline-fields">
+                        <input type="number" id="sp-mao-de-obra" placeholder="Mão de Obra (R$)" step="0.01"><input type="number" id="sp-imposto" placeholder="Impostos (R$)" step="0.01">
+                    </div>
+                    <input type="number" id="sp-tempo" placeholder="Tempo Médio em Minutos (ex: 120)">
+                    <h4>Insumos Vinculados</h4>
+                    <div id="sp-insumos-container"></div>
+                    <div class="add-insumo-controls">
+                        <select id="sp-insumo-select"></select>
+                        <input type="number" id="sp-insumo-quantidade" placeholder="Qtd." step="0.01">
+                        <button type="button" id="sp-add-insumo-btn">Vincular Insumo</button>
+                    </div>
+                    <button type="submit" class="submit-btn">Salvar Modelo de Serviço</button>
+                </form>
+            </div>
+            <div class="card"><h3>Meus Modelos de Serviço</h3><div id="servicos-padrao-lista"></div></div>
+        </div>
+
+        <div id="Insumos" class="tab-content">
+            <div class="card">
+                <h3>Cadastrar Novo Insumo</h3>
+                <form id="insumo-form">
+                    <input type="text" id="insumo-nome" placeholder="Nome do Insumo" required>
+                    <input type="number" id="insumo-preco-total" placeholder="Preço Total Pago (R$)" step="0.01" required>
+                    <div class="inline-fields">
+                        <input type="number" id="insumo-qtd-total" placeholder="Qtd. Total" step="0.01" required>
+                        <select id="insumo-unidade" required>
+                            <option value="L">Litro (L)</option><option value="ml">Mililitro (ml)</option>
+                            <option value="kg">Quilo (kg)</option><option value="g">Grama (g)</option>
+                            <option value="un">Unidade (un)</option>
+                        </select>
+                    </div>
+                    <button type="submit">Salvar Insumo</button>
+                </form>
+            </div>
+            <div class="card"><h3>Meus Insumos Cadastrados</h3><div id="insumos-lista"></div></div>
+        </div>
+        
+         <div id="Relatorio" class="tab-content">
+            <div class="card">
+                <h3>Relatórios</h3>
+                <p>Esta área será desenvolvida em breve.</p>
+            </div>
+        </div>
+    </main>
 
     <template id="orcamento-item-template">
-        </template>
+        <div class="orcamento-item">
+            <div class="item-info">
+                <div class="nome"></div>
+                <div class="custo"></div>
+            </div>
+            <div class="item-preco">
+                <label>Preço</label>
+                <input type="number" class="item-preco-input" step="0.01">
+            </div>
+            <button type="button" class="delete-btn">&times;</button>
+        </div>
+    </template>
     
     <script src="/despesas/js/github-api.js"></script>
     <script src="/despesas/cleanmaster/cleanmaster.js"></script>
