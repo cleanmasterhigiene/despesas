@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/despesas/cleanmaster/style.css">
 </head>
 <body>
-    <div id="loader" class="loader-overlay">
+    <div id="loader" class="loader-overlay" style="display: none;">
         <div class="loader"></div>
     </div>
 
@@ -18,64 +18,88 @@
 
     <main class="container">
         <div class="tabs">
-            <button class="tab-link active" onclick="openTab(event, 'Orcamento')">Orçamento</button>
-            <button class="tab-link" onclick="openTab(event, 'Servicos')">Serviços</button>
+            <button class="tab-link active" onclick="openTab(event, 'Servicos')">Lançar Serviço</button>
+            <button class="tab-link" onclick="openTab(event, 'Cadastros')">Cadastros</button>
             <button class="tab-link" onclick="openTab(event, 'Relatorio')">Relatório</button>
         </div>
 
-        <div id="Orcamento" class="tab-content active">
-            <h2>Gerador de Orçamento</h2>
-            <form id="orcamento-form">
-                <input type="text" id="orcamento-cliente" placeholder="Nome do Cliente" required>
-                <textarea id="orcamento-itens" rows="4" placeholder="Descreva os itens do serviço..." required></textarea>
-                <input type="number" id="orcamento-valor" placeholder="Valor Total do Serviço (R$)" step="0.01" required>
-                <button type="submit">Gerar Orçamento Compartilhável</button>
+        <div id="Servicos" class="tab-content active">
+            <h2>Lançar Serviço Prestado</h2>
+            <form id="servico-form" class="card">
+                <input type="date" id="servico-data" required>
+                <input type="text" id="servico-cliente" placeholder="Nome do Cliente" required>
+                <textarea id="servico-descricao" placeholder="Descrição do Serviço (ex: Limpeza de Sofá 3 lugares)" rows="3" required></textarea>
+                
+                <div class="divider"></div>
+                
+                <h4>Insumos Utilizados no Serviço</h4>
+                <div id="insumos-usados-container">
+                    </div>
+                <div class="add-insumo-controls">
+                    <select id="insumo-select"></select>
+                    <input type="number" id="insumo-quantidade" placeholder="Qtd." step="0.01">
+                    <button type="button" id="add-insumo-btn">Adicionar Insumo</button>
+                </div>
+                
+                <div class="divider"></div>
+
+                <h4>Financeiro</h4>
+                <div class="finance-details">
+                    <div>Custo Total dos Insumos: <strong id="servico-custo-total">R$ 0,00</strong></div>
+                </div>
+                <input type="number" id="servico-preco-cobrado" placeholder="Preço Cobrado do Cliente (R$)" step="0.01" required>
+                <div class="finance-details">
+                    <div>Seu Lucro Líquido: <strong id="servico-lucro-liquido" class="lucro">R$ 0,00</strong></div>
+                </div>
+
+                <button type="submit" class="submit-btn">Salvar Serviço Finalizado</button>
             </form>
-            <div id="orcamento-resultado" class="hidden">
-                <h3>Copie e compartilhe!</h3>
-                <pre id="orcamento-texto"></pre>
-                <button id="copiar-orcamento">Copiar Texto</button>
+        </div>
+
+        <div id="Cadastros" class="tab-content">
+            <div class="card">
+                <h3>Cadastrar Novo Insumo</h3>
+                <form id="insumo-form">
+                    <input type="text" id="insumo-nome" placeholder="Nome do Insumo (ex: WAP Detergente)" required>
+                    <input type="number" id="insumo-preco-total" placeholder="Preço Total Pago (R$)" step="0.01" required>
+                    <div class="inline-fields">
+                        <input type="number" id="insumo-qtd-total" placeholder="Qtd. Total" step="0.01" required>
+                        <select id="insumo-unidade" required>
+                            <option value="L">Litro (L)</option>
+                            <option value="ml">Mililitro (ml)</option>
+                            <option value="kg">Quilo (kg)</option>
+                            <option value="g">Grama (g)</option>
+                            <option value="un">Unidade (un)</option>
+                        </select>
+                    </div>
+                    <button type="submit">Salvar Insumo</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h3>Meus Insumos Cadastrados</h3>
+                <div id="insumos-lista">
+                    </div>
             </div>
         </div>
-
-        <div id="Servicos" class="tab-content">
-            <h2>Lançar Novo Serviço</h2>
-            <form id="servico-form">
-                 <input type="date" id="servico-data" required>
-                 <input type="text" id="servico-cliente" placeholder="Nome do Cliente" required>
-                 <input type="text" id="servico-descricao" placeholder="Serviço Realizado" required>
-                 <input type="number" id="servico-valor" placeholder="Valor Cobrado (R$)" required>
-                 <h4>Custos com Produtos/Materiais</h4>
-                 <div id="servico-custos-container"></div>
-                 <button type="button" id="add-custo-btn">Adicionar Custo</button>
-                 <button type="submit" class="submit-btn">Salvar Serviço</button>
-            </form>
-        </div>
-
+        
         <div id="Relatorio" class="tab-content">
-            <h2>Relatório de Lucratividade</h2>
-            <div class="filters">
+             <h2>Relatório de Lucratividade</h2>
+             <div class="filters">
                 <input type="month" id="relatorio-mes">
             </div>
-            <div class="summary-card">
-                <div class="summary-item">
-                    <span>Faturamento Bruto:</span>
-                    <span id="relatorio-faturamento">R$ 0,00</span>
+             <div id="relatorio-container">
                 </div>
-                <div class="summary-item">
-                    <span>Total de Custos:</span>
-                    <span id="relatorio-custos">R$ 0,00</span>
-                </div>
-                <div class="summary-item lucro">
-                    <span>Lucro Líquido:</span>
-                    <span id="relatorio-lucro">R$ 0,00</span>
-                </div>
-            </div>
-             <h3>Serviços do Período</h3>
-             <div id="relatorio-servicos-lista"></div>
         </div>
     </main>
     
+    <template id="insumo-usado-template">
+        <div class="insumo-usado-item">
+            <span></span>
+            <button type="button" class="delete-btn">&times;</button>
+        </div>
+    </template>
+
     <script src="/despesas/js/github-api.js"></script>
     <script src="/despesas/cleanmaster/cleanmaster.js"></script>
 </body>
