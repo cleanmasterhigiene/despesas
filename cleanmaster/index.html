@@ -18,45 +18,68 @@
 
     <main class="container">
         <div class="tabs">
-            <button class="tab-link active" onclick="openTab(event, 'Servicos')">Lançar Serviço</button>
+            <button class="tab-link active" onclick="openTab(event, 'Lancamento')">Lançar/Orçar</button>
             <button class="tab-link" onclick="openTab(event, 'Cadastros')">Cadastros</button>
             <button class="tab-link" onclick="openTab(event, 'Relatorio')">Relatório</button>
         </div>
 
-        <div id="Servicos" class="tab-content active">
-            <h2>Lançar Serviço Prestado</h2>
-            <form id="servico-form" class="card">
-                <input type="date" id="servico-data" required>
-                <input type="text" id="servico-cliente" placeholder="Nome do Cliente" required>
-                <textarea id="servico-descricao" placeholder="Descrição do Serviço (ex: Limpeza de Sofá 3 lugares)" rows="3" required></textarea>
-                
-                <div class="divider"></div>
-                
-                <h4>Insumos Utilizados no Serviço</h4>
-                <div id="insumos-usados-container">
+        <div id="Lancamento" class="tab-content active">
+            <h2>Lançamento Rápido de Serviço</h2>
+            <div class="card">
+                <form id="lancamento-form">
+                    <label for="lancamento-servico-select">Selecione o Serviço Modelo</label>
+                    <select id="lancamento-servico-select" required>
+                        <option value="">-- Escolha um serviço --</option>
+                    </select>
+
+                    <div id="lancamento-resumo" class="hidden">
+                        <div class="divider"></div>
+                        <h4>Resumo de Custos do Serviço</h4>
+                        <div class="finance-details">
+                            <div>Custo Total (Insumos + Extras): <strong id="lancamento-custo-total">R$ 0,00</strong></div>
+                        </div>
+                        <input type="number" id="lancamento-preco-cobrado" placeholder="Preço Final para o Cliente (R$)" step="0.01" required>
+                        <div class="finance-details">
+                            <div>Seu Lucro Líquido: <strong id="lancamento-lucro-liquido" class="lucro">R$ 0,00</strong></div>
+                        </div>
                     </div>
-                <div class="add-insumo-controls">
-                    <select id="insumo-select"></select>
-                    <input type="number" id="insumo-quantidade" placeholder="Qtd." step="0.01">
-                    <button type="button" id="add-insumo-btn">Adicionar Insumo</button>
-                </div>
-                
-                <div class="divider"></div>
+                    
+                    <input type="date" id="lancamento-data" required>
+                    <input type="text" id="lancamento-cliente" placeholder="Nome do Cliente" required>
 
-                <h4>Financeiro</h4>
-                <div class="finance-details">
-                    <div>Custo Total dos Insumos: <strong id="servico-custo-total">R$ 0,00</strong></div>
-                </div>
-                <input type="number" id="servico-preco-cobrado" placeholder="Preço Cobrado do Cliente (R$)" step="0.01" required>
-                <div class="finance-details">
-                    <div>Seu Lucro Líquido: <strong id="servico-lucro-liquido" class="lucro">R$ 0,00</strong></div>
-                </div>
-
-                <button type="submit" class="submit-btn">Salvar Serviço Finalizado</button>
-            </form>
+                    <button type="submit" class="submit-btn">Salvar Serviço Prestado</button>
+                </form>
+            </div>
         </div>
 
         <div id="Cadastros" class="tab-content">
+            <div class="card">
+                <h3>Criar/Editar Modelo de Serviço</h3>
+                <form id="servico-padrao-form">
+                    <input type="text" id="sp-nome" placeholder="Nome do Serviço (ex: Limpeza Sofá 3 Lugares)" required>
+                    
+                    <h4>Custos Fixos do Serviço (Opcional)</h4>
+                    <div class="inline-fields">
+                        <input type="number" id="sp-mao-de-obra" placeholder="Mão de Obra (R$)">
+                        <input type="number" id="sp-imposto" placeholder="Impostos (R$)">
+                    </div>
+                    <input type="number" id="sp-tempo" placeholder="Tempo Médio em Minutos (ex: 120)">
+
+                    <h4>Insumos Vinculados a este Serviço</h4>
+                    <div id="sp-insumos-container"></div>
+                    <div class="add-insumo-controls">
+                        <select id="sp-insumo-select"></select>
+                        <input type="number" id="sp-insumo-quantidade" placeholder="Qtd." step="0.01">
+                        <button type="button" id="sp-add-insumo-btn">Vincular Insumo</button>
+                    </div>
+                    <button type="submit" class="submit-btn">Salvar Modelo de Serviço</button>
+                </form>
+            </div>
+            <div class="card">
+                <h3>Meus Modelos de Serviço</h3>
+                <div id="servicos-padrao-lista"></div>
+            </div>
+
             <div class="card">
                 <h3>Cadastrar Novo Insumo</h3>
                 <form id="insumo-form">
@@ -65,40 +88,24 @@
                     <div class="inline-fields">
                         <input type="number" id="insumo-qtd-total" placeholder="Qtd. Total" step="0.01" required>
                         <select id="insumo-unidade" required>
-                            <option value="L">Litro (L)</option>
-                            <option value="ml">Mililitro (ml)</option>
-                            <option value="kg">Quilo (kg)</option>
-                            <option value="g">Grama (g)</option>
+                            <option value="L">Litro (L)</option> <option value="ml">Mililitro (ml)</option>
+                            <option value="kg">Quilo (kg)</option> <option value="g">Grama (g)</option>
                             <option value="un">Unidade (un)</option>
                         </select>
                     </div>
                     <button type="submit">Salvar Insumo</button>
                 </form>
             </div>
-            
             <div class="card">
                 <h3>Meus Insumos Cadastrados</h3>
-                <div id="insumos-lista">
-                    </div>
+                <div id="insumos-lista"></div>
             </div>
         </div>
         
         <div id="Relatorio" class="tab-content">
              <h2>Relatório de Lucratividade</h2>
-             <div class="filters">
-                <input type="month" id="relatorio-mes">
-            </div>
-             <div id="relatorio-container">
-                </div>
-        </div>
+             </div>
     </main>
-    
-    <template id="insumo-usado-template">
-        <div class="insumo-usado-item">
-            <span></span>
-            <button type="button" class="delete-btn">&times;</button>
-        </div>
-    </template>
 
     <script src="/despesas/js/github-api.js"></script>
     <script src="/despesas/cleanmaster/cleanmaster.js"></script>
