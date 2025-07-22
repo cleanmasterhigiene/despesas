@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ===================================================================
     // --- 2. HELPER FUNCTIONS (Notificações, UI, Cálculos) ---
     // ===================================================================
-    const showLoader = (show) => loader.style.display = show ? 'flex' : 'none';
+    const showLoader = (show) => { if(loader) loader.style.display = show ? 'flex' : 'none'; };
 
     function showToast(message, type = 'success') {
         const container = document.getElementById('toast-container');
@@ -124,11 +124,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const lista = document.getElementById('clientes-lista');
         if(!lista) return;
         lista.innerHTML = '';
-        if (appData.clientes.length === 0 && filter === '') {
-            lista.innerHTML = '<p class="empty-state">Nenhum cliente cadastrado.</p>';
+        const filtered = appData.clientes.filter(c => c.nome.toLowerCase().includes(filter.toLowerCase()));
+        if (filtered.length === 0) {
+            lista.innerHTML = '<p class="empty-state">Nenhum cliente encontrado.</p>';
             return;
         }
-        const filtered = appData.clientes.filter(c => c.nome.toLowerCase().includes(filter.toLowerCase()));
         filtered.forEach(cliente => {
             const item = document.createElement('div');
             item.className = 'cliente-list-item';
@@ -140,10 +140,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function renderOrcamentoAtual() {
         const lista = document.getElementById('orcamento-itens-lista');
-        if(!lista) return;
-        lista.innerHTML = '';
         const template = document.getElementById('orcamento-item-template');
-        if(!template) return;
+        if(!lista || !template) return;
+        lista.innerHTML = '';
 
         orcamentoAtual.servicos.forEach(item => {
             const clone = template.content.cloneNode(true);
@@ -162,7 +161,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const custoTotal = orcamentoAtual.servicos.reduce((acc, s) => acc + s.custo, 0);
         const precoTotal = orcamentoAtual.servicos.reduce((acc, s) => acc + s.preco, 0);
         const lucroTotal = precoTotal - custoTotal;
-
         document.getElementById('orcamento-custo-total').textContent = `R$ ${custoTotal.toFixed(2)}`;
         document.getElementById('orcamento-preco-total').textContent = `R$ ${precoTotal.toFixed(2)}`;
         document.getElementById('orcamento-lucro-total').textContent = `R$ ${lucroTotal.toFixed(2)}`;
@@ -178,7 +176,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const tabName = e.target.dataset.tab;
                 document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = "none");
                 document.querySelectorAll('.tab-link').forEach(tl => tl.classList.remove("active"));
-                document.getElementById(tabName).style.display = "block";
+                const tabContent = document.getElementById(tabName);
+                if (tabContent) tabContent.style.display = "block";
                 e.target.classList.add("active");
             }
         });
@@ -187,6 +186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('insumo-form')?.addEventListener('submit', async (e) => { e.preventDefault();
             const form = e.target;
             const novoInsumo = { id: Date.now(), nome: form.elements['insumo-nome'].value, precoTotal: parseFloat(form.elements['insumo-preco-total'].value), quantidadeTotal: parseFloat(form.elements['insumo-qtd-total'].value), unidadeMedida: form.elements['insumo-unidade'].value };
+            if (!novoInsumo.nome || !novoInsumo.precoTotal || !novoInsumo.quantidadeTotal) { showToast('Preencha todos os campos do insumo.', 'error'); return; }
             novoInsumo.custoPorUnidade = novoInsumo.precoTotal / novoInsumo.quantidadeTotal;
             appData.insumos.push(novoInsumo);
             await saveData(`Cadastrado insumo: ${novoInsumo.nome}`);
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (insumo) {
                     insumo.precoTotal = parseFloat(itemDiv.querySelector('.insumo-preco-edit').value);
                     insumo.quantidadeTotal = parseFloat(itemDiv.querySelector('.insumo-qtd-edit').value);
-                    if (insumo.quantidadeTotal > 0) insumo.custoPorUnidade = insumo.precoTotal / insumo.quantidadeTotal;
+                    if (insumo.quantidadeTotal > 0) insumo.custoPorUnidade = insumo.precoTotal / insumo.quantidadeTotal; else insumo.custoPorUnidade = 0;
                     await saveData(`Atualizado insumo: ${insumo.nome}`); renderInsumosList(); populateInsumoSelects();
                 }
             }
@@ -214,18 +214,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Aba Serviços
         document.getElementById('sp-add-insumo-btn')?.addEventListener('click', () => {
             const insumoId = document.getElementById('sp-insumo-select').value; const quantidade = parseFloat(document.getElementById('sp-insumo-quantidade').value);
-            if (!insumoId || !quantidade) return;
+            if (!insumoId || !quantidade) { showToast('Selecione um insumo e a quantidade.', 'error'); return; }
             if (!insumosVinculadosCache.some(i => i.insumoId == insumoId)) { insumosVinculadosCache.push({ insumoId: parseInt(insumoId), quantidade }); renderInsumosVinculados(); }
         });
         document.getElementById('sp-insumos-container')?.addEventListener('click', (e) => {
-            if (e.target.matches('.delete-btn')) {
-                const insumoIdToRemove = parseInt(e.target.dataset.insumoId);
-                insumosVinculadosCache = insumosVinculadosCache.filter(i => i.insumoId !== insumoIdToRemove); renderInsumosVinculados();
-            }
+            if (e.target.matches('.delete-btn')) { const insumoIdToRemove = parseInt(e.target.dataset.insumoId); insumosVinculadosCache = insumosVinculadosCache.filter(i => i.insumoId !== insumoIdToRemove); renderInsumosVinculados(); }
         });
         document.getElementById('servico-padrao-form')?.addEventListener('submit', async (e) => { e.preventDefault();
             const form = e.target;
-            const novoServico = { id: Date.now(), nome: form.elements['sp-nome'].value, custoMaoDeObra: parseFloat(form.elements['sp-mao-de-obra'].value) || 0, custoImposto: parseFloat(form.elements['sp-imposto'].value) || 0, tempoEstimado: parseInt(form.elements['sp-tempo'].value) || 0, insumosVinculados: insumosVinculadosCache };
+            const nome = form.elements['sp-nome'].value;
+            if (!nome) { showToast('O nome do serviço é obrigatório.', 'error'); return; }
+            const novoServico = { id: Date.now(), nome: nome, custoMaoDeObra: parseFloat(form.elements['sp-mao-de-obra'].value) || 0, custoImposto: parseFloat(form.elements['sp-imposto'].value) || 0, tempoEstimado: parseInt(form.elements['sp-tempo'].value) || 0, insumosVinculados: insumosVinculadosCache };
             appData.servicosPadrao.push(novoServico);
             await saveData(`Criado modelo de serviço: ${novoServico.nome}`);
             form.reset(); insumosVinculadosCache = []; renderInsumosVinculados(); renderServicosPadraoList(); populateServicoPadraoSelect();
@@ -248,7 +247,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (historico.length > 0) {
                     historico.forEach(h => {
                         const item = document.createElement('div'); item.className = 'historico-servico-item';
-                        item.innerHTML = `<span class="data">${new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR')}:</span> ${h.servicos.map(s=>s.nome).join(', ')} - <strong>Total: R$${h.precoTotal.toFixed(2)}</strong>`;
+                        const dataFormatada = h.data ? new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR') : 'Data não informada';
+                        item.innerHTML = `<span class="data">${dataFormatada}:</span> ${h.servicos.map(s=>s.nome).join(', ')} - <strong>Total: R$${h.precoTotal.toFixed(2)}</strong>`;
                         container.appendChild(item);
                     });
                 } else { container.innerHTML = '<p class="empty-state">Nenhum serviço registrado para este cliente.</p>'; }
@@ -257,8 +257,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         // Aba Lançamento/Orçamento
-        document.getElementById('cliente-search')?.addEventListener('input', (e) => { /* ... código da resposta anterior ... */ });
-        document.getElementById('cliente-select')?.addEventListener('change', (e) => { /* ... código da resposta anterior ... */ });
+        document.getElementById('cliente-search')?.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const select = document.getElementById('cliente-select');
+            select.innerHTML = '';
+            if (searchTerm.length > 0) {
+                const filtered = appData.clientes.filter(c => c.nome.toLowerCase().includes(searchTerm));
+                if (filtered.length > 0) { filtered.forEach(c => select.add(new Option(c.nome, c.id))); select.classList.remove('hidden'); } else { select.classList.add('hidden'); }
+            } else { select.classList.add('hidden'); }
+        });
+        document.getElementById('cliente-select')?.addEventListener('change', (e) => {
+            const clienteId = e.target.value; const cliente = appData.clientes.find(c => c.id == clienteId);
+            if (cliente) { orcamentoAtual.cliente = { id: cliente.id, nome: cliente.nome }; document.getElementById('cliente-search').value = cliente.nome; e.target.classList.add('hidden'); }
+        });
         document.getElementById('show-new-client-btn')?.addEventListener('click', () => { document.getElementById('cliente-new-name').classList.toggle('hidden'); });
         document.getElementById('add-servico-orcamento-btn')?.addEventListener('click', () => {
             const servicoId = document.getElementById('servico-select-orcamento').value; if (!servicoId) return;
@@ -274,8 +285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if(e.target.matches('.item-preco-input')) {
                 const tempId = parseInt(e.target.dataset.tempId); const novoPreco = parseFloat(e.target.value) || 0;
                 const servico = orcamentoAtual.servicos.find(s => s.tempId === tempId);
-                if(servico) servico.preco = novoPreco;
-                updateOrcamentoTotal();
+                if(servico) servico.preco = novoPreco; updateOrcamentoTotal();
             }
         });
         document.getElementById('orcamento-form')?.addEventListener('submit', async (e) => { e.preventDefault();
@@ -293,7 +303,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             await saveData(`Serviço de R$${totais.preco.toFixed(2)} para ${orcamentoAtual.cliente.nome}`);
             
             orcamentoAtual = { cliente: { id: null, nome: null }, servicos: [] }; e.target.reset(); renderOrcamentoAtual(); renderAll();
-            document.getElementById('cliente-new-name').classList.add('hidden');
+            document.getElementById('cliente-new-name').classList.add('hidden'); document.getElementById('cliente-search').value = '';
         });
     }
 
@@ -303,7 +313,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function saveData(commitMessage) {
         showLoader(true);
         try {
-            const response = await api.saveFile(GITHUB_FILE_PATH, appData, commitMessage, fileSHA);
+            const response = await api.saveFile(GITHUB_FILE_PATH, appData, fileSHA);
             fileSHA = response.content.sha;
             showToast('Operação salva com sucesso!');
         } catch (error) {
