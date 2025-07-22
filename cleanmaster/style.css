@@ -8,6 +8,7 @@ header h1 { margin: 0; font-size: 1.2rem; text-align: center; flex-grow: 1; }
 h2, h3, h4 { color: #2c3e50; margin-top: 0; }
 h4 { font-size: 1rem; color: #34495e; border-bottom: 1px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 15px; }
 .divider { height: 1px; background-color: #ecf0f1; margin: 20px 0; }
+label { font-weight: 500; font-size: 0.9rem; color: #34495e; margin-bottom: 5px; display: block; }
 
 /* Abas */
 .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px; background-color: #fff; border-radius: 8px 8px 0 0; }
@@ -28,20 +29,23 @@ button.delete-btn { background-color: #e74c3c; color: white; border-radius: 50%;
 
 /* Controles de Insumos */
 .add-insumo-controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; align-items: center; }
-#add-insumo-btn { padding: 12px; }
-.insumo-usado-item { display: flex; justify-content: space-between; align-items: center; background-color: #ecf0f1; padding: 8px 12px; border-radius: 5px; margin-bottom: 8px; font-size: 0.9rem; }
+#sp-add-insumo-btn { padding: 12px; }
+
+/* Listas de Itens */
+.item-vinculado { display: flex; justify-content: space-between; align-items: center; background-color: #ecf0f1; padding: 8px 12px; border-radius: 5px; margin-bottom: 8px; font-size: 0.9rem; }
+.insumo-item, .servico-padrao-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
+.insumo-item:last-child, .servico-padrao-item:last-child { border-bottom: none; }
+.item-info .nome { font-weight: 500; color: #2c3e50; }
+.item-info .custo, .item-info .tempo { color: #7f8c8d; font-size: 0.85rem; }
 
 /* Detalhes Financeiros */
 .finance-details { font-size: 1.1rem; padding: 10px 0; }
 .finance-details strong { float: right; }
 .finance-details .lucro { color: #27ae60; font-weight: 700; }
-
-/* Lista de Insumos Cadastrados */
-#insumos-lista .insumo-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
-#insumos-lista .insumo-item:last-child { border-bottom: none; }
-.insumo-info { font-size: 0.9rem; }
-.insumo-info .nome { font-weight: 500; color: #2c3e50; }
-.insumo-info .custo { color: #7f8c8d; }
+#lancamento-resumo { background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-top: 10px; }
+.hidden { display: none; }
 
 /* Loader */
-.loader-overlay { /* ...mesmo código do loader de antes... */ }
+.loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+.loader { border: 8px solid #f3f3f3; border-radius: 50%; border-top: 8px solid #3498db; width: 60px; height: 60px; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
