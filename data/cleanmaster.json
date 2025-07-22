@@ -8,7 +8,9 @@
       "precoTotal": 100,
       "custoPorUnidade": 20
     }
-  ],
+{
+  "insumos": [],
   "servicosPadrao": [],
+  "clientes": [],
   "servicosPrestados": []
 }
