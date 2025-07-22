@@ -1,9 +1,13 @@
 {
-  "servicos": [],
-  "produtos": [
-    { "id": 1, "nome": "Impermeabilizante (Litro)", "custo": 50.00 },
-    { "id": 2, "nome": "Flotador (Litro)", "custo": 25.00 },
-    { "id": 3, "nome": "Gasolina (Deslocamento)", "custo": 6.00 }
+  "insumos": [
+    {
+      "id": 1692734280138,
+      "nome": "WAP Detergente",
+      "unidadeMedida": "L",
+      "quantidadeTotal": 5,
+      "precoTotal": 100,
+      "custoPorUnidade": 20
+    }
   ],
-  "despesasFixas": []
+  "servicosPrestados": []
 }
