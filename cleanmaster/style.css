@@ -1,7 +1,7 @@
 /* Estilos Base */
 body { font-family: 'Roboto', sans-serif; background-color: #f4f6f8; margin: 0; color: #333; }
 .container { padding: 15px; max-width: 600px; margin: 0 auto; }
-header { background-color: #2980b9; color: white; padding: 15px 20px; display: flex; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+header { background-color: #2980b9; color: white; padding: 15px 20px; display: flex; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 header h1 { margin: 0; font-size: 1.2rem; text-align: center; flex-grow: 1; }
 .back-button { color: white; text-decoration: none; font-size: 1.5rem; position: absolute; }
 .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
@@ -10,6 +10,7 @@ h4 { font-size: 1rem; color: #34495e; border-bottom: 1px solid #ecf0f1; padding-
 .divider { height: 1px; background-color: #ecf0f1; margin: 20px 0; }
 label { font-weight: 500; font-size: 0.9rem; color: #34495e; margin-bottom: 5px; display: block; }
 .hidden { display: none; }
+.empty-state { text-align: center; color: #95a5a6; padding: 20px; background-color: #f9f9f9; border-radius: 8px; }
 
 /* Abas */
 .tabs { display: flex; flex-wrap: wrap; border-bottom: 2px solid #ddd; margin-bottom: 20px; background-color: #fff; border-radius: 8px 8px 0 0; }
@@ -34,10 +35,16 @@ button.delete-btn { background-color: #e74c3c; color: white; border-radius: 50%;
 
 /* Listas de Itens */
 .item-vinculado { display: flex; justify-content: space-between; align-items: center; background-color: #ecf0f1; padding: 8px 12px; border-radius: 5px; margin-bottom: 8px; font-size: 0.9rem; }
-.insumo-item, .servico-padrao-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
-.insumo-item:last-child, .servico-padrao-item:last-child { border-bottom: none; }
+.servico-padrao-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
+.servico-padrao-item:last-child { border-bottom: none; }
 .item-info .nome { font-weight: 500; color: #2c3e50; }
 .item-info .custo, .item-info .tempo { color: #7f8c8d; font-size: 0.85rem; }
+.insumo-item { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
+.insumo-item .nome { font-weight: 500; grid-column: 1 / 4; }
+.insumo-item .editable-fields { display: flex; align-items: center; gap: 5px; grid-column: 1 / 3; }
+.insumo-item .editable-fields input { width: 80px; text-align: center; }
+.insumo-item .insumo-custo-calculado { grid-column: 1 / 3; font-size: 0.85rem; color: #7f8c8d; justify-self: start; }
+.insumo-item .delete-btn { justify-self: end; grid-column: 3 / 4; grid-row: 2 / 4; }
 
 /* Orçamento e Lançamento */
 .orcamento-itens-container { border: 1px solid #eee; border-radius: 8px; margin-top: 15px; padding: 10px; min-height: 50px; }
@@ -45,14 +52,11 @@ button.delete-btn { background-color: #e74c3c; color: white; border-radius: 50%;
 .orcamento-item .item-preco { text-align: right; }
 .orcamento-item .item-preco label { font-size: 0.8rem; display: block; margin-bottom: 2px; color: #7f8c8d; }
 .orcamento-item .item-preco-input { width: 100px; padding: 8px; text-align: right; }
-
 .finance-summary { background-color: #f9fafb; padding: 15px; border-radius: 8px; }
 .finance-row { display: flex; justify-content: space-between; font-size: 1.1rem; padding: 8px 0; border-bottom: 1px solid #ecf0f1; }
 .finance-row:last-child { border-bottom: none; }
 .finance-row.lucro { font-size: 1.2rem; font-weight: bold; }
 .finance-row.lucro strong { color: #27ae60; }
-#lancamento-resumo { background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-top: 10px; }
-
 
 /* Aba Clientes */
 #clientes-lista .cliente-list-item { cursor: pointer; padding: 15px; border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s; }
@@ -65,3 +69,10 @@ button.delete-btn { background-color: #e74c3c; color: white; border-radius: 50%;
 .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; }
 .loader { border: 8px solid #f3f3f3; border-radius: 50%; border-top: 8px solid #3498db; width: 60px; height: 60px; animation: spin 1s linear infinite; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* Notificação (Toast) */
+#toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+.toast { padding: 15px 20px; border-radius: 8px; color: white; font-weight: 500; box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 0; transform: translateX(100%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+.toast.show { opacity: 1; transform: translateX(0); }
+.toast.success { background-color: #27ae60; }
+.toast.error { background-color: #e74c3c; }
