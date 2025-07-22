@@ -1,5 +1,43 @@
-/* ... Cole aqui todo o CSS da resposta anterior ... */
-/* E adicione estes novos estilos no final */
+/* Estilos Base */
+body { font-family: 'Roboto', sans-serif; background-color: #f4f6f8; margin: 0; color: #333; }
+.container { padding: 15px; max-width: 600px; margin: 0 auto; }
+header { background-color: #2980b9; color: white; padding: 15px 20px; display: flex; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+header h1 { margin: 0; font-size: 1.2rem; text-align: center; flex-grow: 1; }
+.back-button { color: white; text-decoration: none; font-size: 1.5rem; position: absolute; }
+.card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
+h2, h3, h4 { color: #2c3e50; margin-top: 0; }
+h4 { font-size: 1rem; color: #34495e; border-bottom: 1px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 15px; }
+.divider { height: 1px; background-color: #ecf0f1; margin: 20px 0; }
+label { font-weight: 500; font-size: 0.9rem; color: #34495e; margin-bottom: 5px; display: block; }
+.hidden { display: none; }
+
+/* Abas */
+.tabs { display: flex; flex-wrap: wrap; border-bottom: 2px solid #ddd; margin-bottom: 20px; background-color: #fff; border-radius: 8px 8px 0 0; }
+.tab-link { flex-grow: 1; background: none; border: none; padding: 15px 10px; cursor: pointer; font-size: 0.95rem; color: #7f8c8d; border-bottom: 3px solid transparent; text-align: center; }
+.tab-link.active { color: #2980b9; border-bottom-color: #2980b9; font-weight: 500; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.5s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Formulários */
+form { display: flex; flex-direction: column; gap: 15px; }
+input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1rem; font-family: 'Roboto', sans-serif; }
+textarea { resize: vertical; }
+.inline-fields { display: flex; gap: 10px; }
+button { padding: 15px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
+button.submit-btn { background-color: #27ae60; }
+button.delete-btn { background-color: #e74c3c; color: white; border-radius: 50%; width: 24px; height: 24px; padding: 0; font-size: 1rem; line-height: 24px; text-align: center; flex-shrink: 0; border: none; }
+
+/* Controles de Insumos */
+.add-insumo-controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; align-items: center; }
+#sp-add-insumo-btn { padding: 12px; }
+
+/* Listas de Itens */
+.item-vinculado { display: flex; justify-content: space-between; align-items: center; background-color: #ecf0f1; padding: 8px 12px; border-radius: 5px; margin-bottom: 8px; font-size: 0.9rem; }
+.insumo-item, .servico-padrao-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
+.insumo-item:last-child, .servico-padrao-item:last-child { border-bottom: none; }
+.item-info .nome { font-weight: 500; color: #2c3e50; }
+.item-info .custo, .item-info .tempo { color: #7f8c8d; font-size: 0.85rem; }
 
 /* Orçamento e Lançamento */
 .orcamento-itens-container { border: 1px solid #eee; border-radius: 8px; margin-top: 15px; padding: 10px; min-height: 50px; }
@@ -13,6 +51,8 @@
 .finance-row:last-child { border-bottom: none; }
 .finance-row.lucro { font-size: 1.2rem; font-weight: bold; }
 .finance-row.lucro strong { color: #27ae60; }
+#lancamento-resumo { background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-top: 10px; }
+
 
 /* Aba Clientes */
 #clientes-lista .cliente-list-item { cursor: pointer; padding: 15px; border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s; }
@@ -20,3 +60,8 @@
 #cliente-detalhes-nome { border-bottom: 2px solid #2980b9; padding-bottom: 10px; margin-bottom: 15px; }
 .historico-servico-item { background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 0.9rem; }
 .historico-servico-item .data { font-weight: bold; }
+
+/* Loader */
+.loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+.loader { border: 8px solid #f3f3f3; border-radius: 50%; border-top: 8px solid #3498db; width: 60px; height: 60px; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
