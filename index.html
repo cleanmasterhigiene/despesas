@@ -26,21 +26,7 @@
                 <p>Gerencie seus serviços, custos e lucros.</p>
             </a>
         </div>
-        <a href="setup/" class="setup-link">Configurar Acesso ao GitHub</a>
+        <!-- O link de setup não é mais necessário com o Firebase -->
     </div>
-
-    <script>
-        // Adicionado para corrigir o redirecionamento
-        document.addEventListener('DOMContentLoaded', () => {
-            // Verifica se a configuração do GitHub já existe no armazenamento local
-            const githubConfig = localStorage.getItem('githubConfig');
-
-            // Se não houver configuração, redireciona para a página de setup
-            if (!githubConfig) {
-                // Comente ou remova a linha abaixo se não quiser o redirecionamento automático
-                // window.location.href = 'setup/';
-            }
-        });
-    </script>
 </body>
 </html>
