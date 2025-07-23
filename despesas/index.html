@@ -1,66 +1,434 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Despesas Pessoais</title>
-    <link rel="stylesheet" href="/despesas/despesas/style.css">
-</head>
-<body>
-    <div id="loader" class="loader-overlay">
-        <div class="loader"></div>
-    </div>
-    
-    <header>
-        <a href="/despesas/" class="back-button">&larr; Voltar</a>
-        <h1>Minhas Despesas</h1>
-    </header>
+    <title>Controle Financeiro</title>
+    <style>
+        :root {
+            --cor-principal: #279AF1;
+            --cor-sucesso: #28a745;
+            --cor-perigo: #dc3545;
+            --cor-aviso: #ffc107;
+            --cor-fundo: #f0f4f8;
+            --cor-texto: #333;
+            --cor-texto-claro: #7f8c8d;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+        }
+        .header {
+            background-color: var(--cor-principal);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.5em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 60px; /* Altura do header */
+            z-index: 99;
+        }
+        .tab-button {
+            flex-grow: 1;
+            padding: 15px 10px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-size: 0.9em;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .tab-button.active {
+            border-bottom: 3px solid var(--cor-principal);
+            color: var(--cor-principal);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            padding: 15px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.2em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--cor-principal);
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        .summary-item span:first-child {
+            color: var(--cor-texto-claro);
+        }
+        .summary-item span:last-child {
+            font-weight: bold;
+        }
+        .despesa-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .despesa-item.pago .despesa-descricao, .despesa-item.pago .despesa-valor {
+            text-decoration: line-through;
+            color: #aaa;
+        }
+        .despesa-info {
+            flex-grow: 1;
+            margin-left: 15px;
+        }
+        .despesa-descricao {
+            font-weight: bold;
+            font-size: 1em;
+        }
+        .despesa-detalhes {
+            font-size: 0.85em;
+            color: var(--cor-texto-claro);
+        }
+        .despesa-valor {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--cor-perigo);
+        }
+        .despesa-item.pago .despesa-valor {
+            color: var(--cor-sucesso);
+        }
+        .despesa-acoes {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .btn {
+            padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em;
+        }
+        .btn-sm { padding: 5px 8px; font-size: 0.8em; }
+        .btn-success { background-color: var(--cor-sucesso); color: white; }
+        .btn-warning { background-color: var(--cor-aviso); color: #212529; }
+        .btn-danger { background-color: var(--cor-perigo); color: white; }
 
-    <main class="container">
-        <section class="summary-card">
-            <h2>Resumo do Mês</h2>
-            <div class="summary-item">
-                <span>Total Gasto:</span>
-                <span id="total-mes">R$ 0,00</span>
+        .fab {
+            position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
+            background-color: var(--cor-principal); color: white; border: none; border-radius: 50%;
+            font-size: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer;
+            display: flex; justify-content: center; align-items: center; z-index: 1001;
+        }
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 2000;
+        }
+        .modal-content {
+            background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px;
+        }
+        .modal-content h2 { margin-top: 0; }
+        .close-button { float: right; font-size: 1.5rem; cursor: pointer; }
+        #form-despesa input, #form-despesa select {
+            width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc;
+            border-radius: 5px; box-sizing: border-box; font-size: 1em;
+        }
+        #form-despesa button {
+            width: 100%; padding: 15px; background-color: var(--cor-sucesso); color: white;
+            border: none; border-radius: 5px; font-size: 1rem;
+        }
+        #parcelas-container.hidden { display: none; }
+        .navegacao-mes { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; text-align: center; }
+        .navegacao-mes h2 { margin: 0; font-size: 1.2em; }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Controle Financeiro</h1>
+    </header>
+    <div class="tabs">
+        <button class="tab-button active" onclick="abrirTab('resumo')">Resumo</button>
+        <button class="tab-button" onclick="abrirTab('cartao')">Cartão</button>
+        <button class="tab-button" onclick="abrirTab('contas')">Contas</button>
+        <button class="tab-button" onclick="abrirTab('financiamentos')">Financiamentos</button>
+    </div>
+
+    <main>
+        <div id="resumo" class="tab-content active">
+            <div class="card">
+                <div class="navegacao-mes">
+                    <button class="btn btn-sm" onclick="mudarMes(-1)">&lt; Anterior</button>
+                    <h2 id="mes-ano-atual"></h2>
+                    <button class="btn btn-sm" onclick="mudarMes(1)">Próximo &gt;</button>
+                </div>
+                <div class="summary-item">
+                    <span>Pago no Mês:</span>
+                    <span id="total-pago-mes" style="color: var(--cor-sucesso);">R$ 0,00</span>
+                </div>
+                <div class="summary-item">
+                    <span>A Pagar no Mês:</span>
+                    <span id="total-a-pagar-mes" style="color: var(--cor-perigo);">R$ 0,00</span>
+                </div>
             </div>
-             <div class="summary-item">
-                <span>Próximos 30 dias:</span>
-                <span id="total-futuro">R$ 0,00</span>
+            <div class="card">
+                <h2>Lançamentos do Mês</h2>
+                <div id="lista-despesas-resumo"></div>
             </div>
-        </section>
-        <button id="add-expense-btn" class="fab">+</button>
-        <section class="expenses-section">
-            <h2>Lançamentos</h2>
-            <div class="filters">
-                <input type="month" id="filter-month" />
+        </div>
+
+        <div id="cartao" class="tab-content">
+            <div class="card">
+                <h2>Despesas do Cartão de Crédito</h2>
+                <div id="lista-despesas-cartao"></div>
             </div>
-            <div id="expenses-list"></div>
-        </section>
-        <div id="modal" class="modal-overlay">
-            <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h2>Nova Despesa</h2>
-                <form id="expense-form">
-                    <input type="text" id="descricao" placeholder="Descrição (ex: Supermercado)" required>
-                    <input type="number" id="valor" placeholder="Valor (R$)" step="0.01" required>
-                    <input type="date" id="data" required>
-                    <input type="text" id="categoria-search" placeholder="Buscar categoria...">
-                    <select id="categoria" required></select>
-                    <div class="installments-section">
-                        <label for="parcelado">
-                            <input type="checkbox" id="parcelado"> Compra Parcelada?
-                        </label>
-                        <div id="parcelas-container" class="hidden">
-                            <input type="number" id="num-parcelas" placeholder="Nº de Parcelas" min="2">
-                        </div>
-                    </div>
-                    <button type="submit">Adicionar Despesa</button>
-                </form>
+        </div>
+        <div id="contas" class="tab-content">
+            <div class="card">
+                <h2>Contas (Água, Luz, etc.)</h2>
+                <div id="lista-despesas-contas"></div>
+            </div>
+        </div>
+        <div id="financiamentos" class="tab-content">
+            <div class="card">
+                <h2>Financiamentos</h2>
+                <div id="lista-despesas-financiamentos"></div>
             </div>
         </div>
     </main>
 
-    <script src="/despesas/js/github-api.js"></script>
-    <script src="/despesas/despesas/despesas.js"></script>
+    <button id="add-despesa-btn" class="fab">+</button>
+    
+    <div id="modal-despesa" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-button" onclick="fecharModal()">&times;</span>
+            <h2 id="modal-titulo">Nova Despesa</h2>
+            <form id="form-despesa">
+                <input type="hidden" id="despesa-id">
+                <input type="text" id="descricao" placeholder="Descrição" required>
+                <input type="number" id="valor" placeholder="Valor Total (R$)" step="0.01" required>
+                <input type="date" id="data-vencimento" required>
+                <select id="tipo-despesa" required>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Conta">Conta</option>
+                    <option value="Financiamento">Financiamento</option>
+                    <option value="Outra">Outra</option>
+                </select>
+                <div id="parcelas-section">
+                    <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <input type="checkbox" id="parcelado"> É uma compra parcelada?
+                    </label>
+                    <div id="parcelas-container" class="hidden">
+                        <input type="number" id="num-parcelas" placeholder="Nº de Parcelas" min="2">
+                    </div>
+                </div>
+                <button type="submit" id="btn-salvar-despesa">Adicionar Despesa</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let db = {};
+        let mesAtual = new Date();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const dadosLocais = localStorage.getItem('controleFinanceiroDB');
+                db = dadosLocais ? JSON.parse(dadosLocais) : { despesas: [] };
+            } catch (error) {
+                console.error("Erro ao carregar dados.", error);
+                db = { despesas: [] };
+            }
+            iniciarApp();
+        });
+
+        function iniciarApp() {
+            if (!db.despesas) db.despesas = [];
+            abrirTab('resumo');
+            document.getElementById('add-despesa-btn').addEventListener('click', () => abrirModal());
+            document.getElementById('form-despesa').addEventListener('submit', salvarDespesa);
+            document.getElementById('parcelado').addEventListener('change', (e) => {
+                document.getElementById('parcelas-container').classList.toggle('hidden', !e.target.checked);
+            });
+        }
+
+        function salvarDB() {
+            localStorage.setItem('controleFinanceiroDB', JSON.stringify(db));
+        }
+
+        function abrirTab(nomeTab) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(nomeTab).classList.add('active');
+            document.querySelector(`.tab-button[onclick="abrirTab('${nomeTab}')"]`).classList.add('active');
+            renderizarTodasAbas();
+        }
+
+        function renderizarTodasAbas() {
+            renderizarAbaResumo();
+            renderizarAbaEspecifica('Cartão de Crédito', 'lista-despesas-cartao');
+            renderizarAbaEspecifica('Conta', 'lista-despesas-contas');
+            renderizarAbaEspecifica('Financiamento', 'lista-despesas-financiamentos');
+        }
+
+        function abrirModal(despesaId = null) {
+            const modal = document.getElementById('modal-despesa');
+            const form = document.getElementById('form-despesa');
+            const titulo = document.getElementById('modal-titulo');
+            const btnSalvar = document.getElementById('btn-salvar-despesa');
+            const parcelasSection = document.getElementById('parcelas-section');
+            form.reset();
+
+            if (despesaId) {
+                const despesa = db.despesas.find(d => d.id === despesaId);
+                titulo.textContent = "Editar Despesa";
+                btnSalvar.textContent = "Atualizar Despesa";
+                document.getElementById('despesa-id').value = despesa.id;
+                document.getElementById('descricao').value = despesa.descricaoOriginal || despesa.descricao;
+                document.getElementById('valor').value = despesa.valor;
+                document.getElementById('data-vencimento').value = despesa.dataVencimento;
+                document.getElementById('tipo-despesa').value = despesa.tipo;
+                parcelasSection.style.display = 'none'; // Não permite editar parcelamento
+            } else {
+                titulo.textContent = "Nova Despesa";
+                btnSalvar.textContent = "Adicionar Despesa";
+                document.getElementById('data-vencimento').valueAsDate = new Date();
+                parcelasSection.style.display = 'block';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-despesa').style.display = 'none';
+        }
+
+        function salvarDespesa(e) {
+            e.preventDefault();
+            const id = document.getElementById('despesa-id').value;
+            const descricao = document.getElementById('descricao').value.trim();
+            const valor = parseFloat(document.getElementById('valor').value);
+            const dataVencimento = document.getElementById('data-vencimento').value;
+            const tipo = document.getElementById('tipo-despesa').value;
+            const isParcelado = document.getElementById('parcelado').checked;
+            const numParcelas = parseInt(document.getElementById('num-parcelas').value);
+
+            if (id) { // Editando
+                const index = db.despesas.findIndex(d => d.id === id);
+                if (index > -1) {
+                    db.despesas[index] = { ...db.despesas[index], descricao, valor, dataVencimento, tipo };
+                }
+            } else { // Criando
+                if (isParcelado && numParcelas >= 2) {
+                    const valorParcela = valor / numParcelas;
+                    let dataParcela = new Date(dataVencimento + 'T12:00:00');
+                    for (let i = 1; i <= numParcelas; i++) {
+                        db.despesas.push({
+                            id: 'desp_' + Date.now() + i,
+                            descricao: `${descricao} (${i}/${numParcelas})`,
+                            descricaoOriginal: descricao,
+                            valor: valorParcela,
+                            dataVencimento: dataParcela.toISOString().split('T')[0],
+                            tipo,
+                            status: 'a pagar',
+                            parcelaInfo: { atual: i, total: numParcelas }
+                        });
+                        dataParcela.setMonth(dataParcela.getMonth() + 1);
+                    }
+                } else {
+                    db.despesas.push({ id: 'desp_' + Date.now(), descricao, valor, dataVencimento, tipo, status: 'a pagar' });
+                }
+            }
+            salvarDB();
+            renderizarTodasAbas();
+            fecharModal();
+        }
+
+        function renderizarAbaEspecifica(tipo, elementId) {
+            const container = document.getElementById(elementId);
+            const despesasFiltradas = db.despesas.filter(d => d.tipo === tipo).sort((a,b) => new Date(a.dataVencimento) - new Date(b.dataVencimento));
+            container.innerHTML = despesasFiltradas.length > 0 ? despesasFiltradas.map(criarItemDespesaHTML).join('') : '<p>Nenhuma despesa encontrada.</p>';
+        }
+
+        function renderizarAbaResumo() {
+            const ano = mesAtual.getFullYear();
+            const mes = mesAtual.getMonth();
+            document.getElementById('mes-ano-atual').textContent = mesAtual.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+
+            const despesasDoMes = db.despesas.filter(d => {
+                const data = new Date(d.dataVencimento + 'T12:00:00');
+                return data.getFullYear() === ano && data.getMonth() === mes;
+            });
+
+            const totalPago = despesasDoMes.filter(d => d.status === 'paga').reduce((acc, d) => acc + d.valor, 0);
+            const totalAPagar = despesasDoMes.filter(d => d.status === 'a pagar').reduce((acc, d) => acc + d.valor, 0);
+
+            document.getElementById('total-pago-mes').textContent = `R$ ${totalPago.toFixed(2)}`;
+            document.getElementById('total-a-pagar-mes').textContent = `R$ ${totalAPagar.toFixed(2)}`;
+            
+            const listaContainer = document.getElementById('lista-despesas-resumo');
+            despesasDoMes.sort((a,b) => new Date(a.dataVencimento) - new Date(b.dataVencimento));
+            listaContainer.innerHTML = despesasDoMes.length > 0 ? despesasDoMes.map(criarItemDespesaHTML).join('') : '<p>Nenhuma despesa para este mês.</p>';
+        }
+
+        function criarItemDespesaHTML(despesa) {
+            const dataFormatada = new Date(despesa.dataVencimento + 'T12:00:00').toLocaleDateString('pt-BR');
+            return `
+                <div class="despesa-item ${despesa.status}">
+                    <div class="despesa-info">
+                        <p class="despesa-descricao">${despesa.descricao}</p>
+                        <p class="despesa-detalhes">${despesa.tipo} - Venc: ${dataFormatada}</p>
+                        <div class="despesa-acoes">
+                            ${despesa.status === 'a pagar' ? `<button class="btn btn-sm btn-success" onclick="toggleStatusPagamento('${despesa.id}')">Marcar como Paga</button>` : `<button class="btn btn-sm btn-warning" onclick="toggleStatusPagamento('${despesa.id}')">Marcar como Não Paga</button>`}
+                            <button class="btn btn-sm" onclick="abrirModal('${despesa.id}')">Editar</button>
+                            <button class="btn btn-sm btn-danger" onclick="excluirDespesa('${despesa.id}')">Excluir</button>
+                        </div>
+                    </div>
+                    <span class="despesa-valor">R$ ${despesa.valor.toFixed(2)}</span>
+                </div>
+            `;
+        }
+        
+        function toggleStatusPagamento(despesaId) {
+            const index = db.despesas.findIndex(d => d.id === despesaId);
+            if (index > -1) {
+                db.despesas[index].status = db.despesas[index].status === 'paga' ? 'a pagar' : 'paga';
+                salvarDB();
+                renderizarTodasAbas();
+            }
+        }
+        
+        function excluirDespesa(despesaId) {
+            if (confirm("Tem certeza que deseja excluir esta despesa?")) {
+                db.despesas = db.despesas.filter(d => d.id !== despesaId);
+                salvarDB();
+                renderizarTodasAbas();
+            }
+        }
+        
+        function mudarMes(offset) {
+            mesAtual.setMonth(mesAtual.getMonth() + offset, 1);
+            renderizarAbaResumo();
+        }
+
+    </script>
 </body>
 </html>
