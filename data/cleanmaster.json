@@ -9,7 +9,21 @@
       "custoPorUnidade": 10
     }
   ],
-  "servicosPadrao": [],
+  "servicosPadrao": [
+    {
+      "id": 1753269845588,
+      "nome": "teste sofa 123",
+      "custoMaoDeObra": 10,
+      "custoImposto": 10,
+      "tempoEstimado": 120,
+      "insumosVinculados": [
+        {
+          "insumoId": 1753269814340,
+          "quantidade": 2
+        }
+      ]
+    }
+  ],
   "clientes": [],
   "servicosPrestados": []
 }
