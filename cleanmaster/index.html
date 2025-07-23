@@ -28,6 +28,7 @@
         .btn-sm { padding: 5px 10px; font-size: 0.9em; }
         .item-lista { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
         .servico-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .servico-item-preco { width: 100px; text-align: right; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
         .resumo-financeiro p { font-size: 1.2em; font-weight: bold; display: flex; justify-content: space-between; }
         .cliente-card { background-color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
         .cliente-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; cursor: pointer; }
@@ -250,7 +251,8 @@
             if (!servicoId) return;
             const servicoInfo = db.precos.find(p => p.id == servicoId);
             if (servicoInfo) {
-                servicosAdicionados.push(servicoInfo);
+                // Adiciona uma CÓPIA do serviço, para não alterar o original na tabela de preços
+                servicosAdicionados.push({ ...servicoInfo });
                 renderizarServicosAdicionados();
             }
         }
@@ -262,9 +264,26 @@
             const lista = document.getElementById('lista-servicos-adicionados');
             lista.innerHTML = '';
             servicosAdicionados.forEach((servico, index) => {
-                lista.innerHTML += `<div class="servico-item"><span>${servico.nome} - R$ ${servico.preco.toFixed(2)}</span><button class="btn btn-danger btn-sm" onclick="removerServicoOrcamento(${index})">&times;</button></div>`;
+                lista.innerHTML += `
+                    <div class="servico-item">
+                        <span>${servico.nome}</span>
+                        <div>
+                            <span>R$ </span>
+                            <input type="number" class="servico-item-preco" value="${servico.preco.toFixed(2)}" onchange="atualizarPrecoOrcamento(${index}, this.value)">
+                            <button class="btn btn-danger btn-sm" onclick="removerServicoOrcamento(${index})">&times;</button>
+                        </div>
+                    </div>`;
             });
             atualizarResumoFinanceiro();
+        }
+        function atualizarPrecoOrcamento(index, novoPreco) {
+            const precoNumerico = parseFloat(novoPreco);
+            if (!isNaN(precoNumerico)) {
+                // Atualiza o preço apenas no item do orçamento atual
+                servicosAdicionados[index].preco = precoNumerico;
+                // Recalcula o resumo financeiro
+                atualizarResumoFinanceiro();
+            }
         }
         function atualizarResumoFinanceiro() {
             const custoTotal = servicosAdicionados.reduce((acc, s) => acc + (s.custo || 0), 0);
@@ -432,7 +451,9 @@
             lista.innerHTML = '';
             insumosParaServicoAtual.forEach((item, index) => {
                 const insumoInfo = db.insumos.find(i => i.id === item.insumoId);
-                lista.innerHTML += `<div class="item-lista"><span>${insumoInfo.nome} - ${item.quantidade} ${insumoInfo.unidade}</span><button class="btn btn-danger btn-sm" onclick="removerInsumoDoServico(${index})">&times;</button></div>`;
+                if(insumoInfo) {
+                    lista.innerHTML += `<div class="item-lista"><span>${insumoInfo.nome} - ${item.quantidade} ${insumoInfo.unidade}</span><button class="btn btn-danger btn-sm" onclick="removerInsumoDoServico(${index})">&times;</button></div>`;
+                }
             });
             document.getElementById('insumo-para-servico-select').value = '';
             document.getElementById('insumo-para-servico-qtd').value = '';
@@ -443,7 +464,6 @@
             const lista = document.getElementById('lista-insumos');
             lista.innerHTML = '';
             (db.insumos || []).forEach(i => {
-                // CORREÇÃO: Garante que os valores existam antes de usar toFixed
                 const custoTotal = i.custo_total || 0;
                 const qtdTotal = i.quantidade_total || 0;
                 const unidade = i.unidade || '';
