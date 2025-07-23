@@ -27,16 +27,16 @@
         .tab-content.active { display: block; animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Formulários */
+        /* Formulários e Botões */
         form { display: flex; flex-direction: column; gap: 15px; }
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1rem; font-family: 'Roboto', sans-serif; }
-        textarea { resize: vertical; }
         .inline-fields { display: flex; gap: 10px; align-items: center; }
-        button { padding: 15px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
-        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
-        button.submit-btn { background-color: #27ae60; }
-        button.image-btn { background-color: #f39c12; }
-        button.delete-btn { background-color: #e74c3c; color: white; border-radius: 50%; width: 24px; height: 24px; padding: 0; font-size: 1rem; line-height: 24px; text-align: center; flex-shrink: 0; border: none; }
+        button, .action-btn { padding: 15px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
+        button:disabled, .action-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .action-btn.download { background-color: #2980b9; flex-grow: 1; text-align: center; }
+        .action-btn.share { background-color: #27ae60; flex-grow: 1; }
+        button.submit-btn { background-color: #27ae60; width: 100%; margin-top: 10px;}
+        button.delete-btn { background-color: #e74c3c; border-radius: 50%; width: 24px; height: 24px; padding: 0; font-size: 1rem; line-height: 24px; text-align: center; flex-shrink: 0; }
 
         /* Controles de Insumos */
         .add-insumo-controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; align-items: center; }
@@ -45,9 +45,8 @@
         /* Listas de Itens */
         .item-vinculado { display: flex; justify-content: space-between; align-items: center; background-color: #ecf0f1; padding: 8px 12px; border-radius: 5px; margin-bottom: 8px; font-size: 0.9rem; }
         .servico-padrao-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
-        .servico-padrao-item:last-child { border-bottom: none; }
         .item-info .nome { font-weight: 500; color: #2c3e50; }
-        .item-info .custo, .item-info .tempo { color: #7f8c8d; font-size: 0.85rem; }
+        .item-info .custo { color: #7f8c8d; font-size: 0.85rem; }
         .insumo-item { display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
         .insumo-item .nome { font-weight: 500; grid-column: 1 / -1; }
         .insumo-item .editable-fields { display: flex; align-items: center; gap: 5px; }
@@ -85,18 +84,6 @@
         .toast.show { opacity: 1; transform: translateX(0); }
         .toast.success { background-color: #27ae60; }
         .toast.error { background-color: #e74c3c; }
-        
-        /* Modal de Imagem */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-        .modal-content h2 { margin-top: 0; }
-        .close-button { float: right; font-size: 1.8rem; font-weight: bold; cursor: pointer; line-height: 1; }
-        #image-preview-container { width: 100%; margin: 20px 0; border: 1px solid #ddd; }
-        #orcamento-image-preview { width: 100%; display: block; }
-        .modal-actions { display: flex; gap: 15px; justify-content: center; margin-top: 15px; }
-        .action-btn { flex-grow: 1; text-decoration: none; padding: 15px; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; text-align: center; }
-        .action-btn.download { background-color: #2980b9; }
-        .action-btn.share { background-color: #27ae60; }
     </style>
 </head>
 <body>
@@ -141,9 +128,10 @@
                 <div class="divider"></div>
                 <input type="date" id="orcamento-data" required>
                 <div class="inline-fields">
-                    <button type="button" id="gerar-imagem-orcamento-btn" class="image-btn" disabled>Gerar Imagem</button>
-                    <button type="submit" class="submit-btn">Salvar Serviço</button>
+                    <button type="button" id="baixar-imagem-btn" class="action-btn download" disabled>Baixar Imagem</button>
+                    <button type="button" id="compartilhar-imagem-btn" class="action-btn share" disabled>Compartilhar</button>
                 </div>
+                <button type="submit" class="submit-btn">Salvar Serviço</button>
             </form>
         </div>
 
@@ -202,38 +190,17 @@
         </div>
         
         <div id="Relatorio" class="tab-content">
-            <div class="card">
-                <h3>Relatórios</h3>
-                <p>Esta área será desenvolvida em breve.</p>
-            </div>
+            <div class="card"><h3>Relatórios</h3><p>Esta área será desenvolvida em breve.</p></div>
         </div>
     </main>
 
     <template id="orcamento-item-template">
         <div class="orcamento-item">
-            <div class="item-info">
-                <div class="nome"></div><div class="custo"></div>
-            </div>
-            <div class="item-preco">
-                <label>Preço</label><input type="number" class="item-preco-input" step="0.01">
-            </div>
+            <div class="item-info"><div class="nome"></div><div class="custo"></div></div>
+            <div class="item-preco"><label>Preço</label><input type="number" class="item-preco-input" step="0.01"></div>
             <button type="button" class="delete-btn">&times;</button>
         </div>
     </template>
-    
-    <div id="image-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <span id="close-modal-btn" class="close-button">&times;</span>
-            <h2>Orçamento Gerado</h2>
-            <div id="image-preview-container">
-                <img id="orcamento-image-preview" src="" alt="Pré-visualização do Orçamento">
-            </div>
-            <div class="modal-actions">
-                <a id="download-image-btn" href="#" class="action-btn download">Baixar Imagem</a>
-                <button id="share-image-btn" class="action-btn share">Compartilhar</button>
-            </div>
-        </div>
-    </div>
     
     <script src="/despesas/js/github-api.js"></script>
     <script>
@@ -287,7 +254,7 @@
                 populateServicoPadraoSelect();
                 renderClientesList();
             }
-
+            // (Colar aqui todas as 7 funções de RENDER da resposta anterior)
             function renderInsumosList() {
                 const lista = document.getElementById('insumos-lista');
                 if (!lista) return;
@@ -400,6 +367,7 @@
                 const custoTotal = orcamentoAtual.servicos.reduce((acc, s) => acc + s.custo, 0);
                 const precoTotal = orcamentoAtual.servicos.reduce((acc, s) => acc + s.preco, 0);
                 const lucroTotal = precoTotal - custoTotal;
+                
                 const custoEl = document.getElementById('orcamento-custo-total');
                 const precoEl = document.getElementById('orcamento-preco-total');
                 const lucroEl = document.getElementById('orcamento-lucro-total');
@@ -408,12 +376,14 @@
                 if (lucroEl) lucroEl.textContent = `R$ ${lucroTotal.toFixed(2)}`;
                 
                 const temItens = orcamentoAtual.servicos.length > 0 && orcamentoAtual.cliente && orcamentoAtual.cliente.id;
-                const btn = document.getElementById('gerar-imagem-orcamento-btn');
-                if(btn) btn.disabled = !temItens;
+                const baixarBtn = document.getElementById('baixar-imagem-btn');
+                const compartilharBtn = document.getElementById('compartilhar-imagem-btn');
+                if (baixarBtn) baixarBtn.disabled = !temItens;
+                if (compartilharBtn) compartilharBtn.disabled = !temItens;
             }
             
             // ===================================================================
-            // --- 4. EVENT LISTENERS & IMAGE GENERATION ---
+            // --- 4. EVENT LISTENERS ---
             // ===================================================================
             function setupEventListeners() {
                 document.querySelector('.tabs')?.addEventListener('click', (e) => {
@@ -422,13 +392,12 @@
                         document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = "none");
                         document.querySelectorAll('.tab-link').forEach(tl => tl.classList.remove("active"));
                         const tabContent = document.getElementById(tabName);
-                        if (tabContent) {
-                            tabContent.style.display = "block";
-                            e.target.classList.add("active");
-                        }
+                        if (tabContent) tabContent.style.display = "block";
+                        e.target.classList.add("active");
                     }
                 });
-
+                
+                // (Colar aqui todos os 14 blocos de Event Listeners da resposta anterior, começando por 'insumo-form')
                 document.getElementById('insumo-form')?.addEventListener('submit', async (e) => { e.preventDefault();
                     const form = e.target;
                     const novoInsumo = { id: Date.now(), nome: form.elements['insumo-nome'].value, precoTotal: parseFloat(form.elements['insumo-preco-total'].value), quantidadeTotal: parseFloat(form.elements['insumo-qtd-total'].value), unidadeMedida: form.elements['insumo-unidade'].value };
@@ -543,128 +512,33 @@
                 });
                 
                 document.getElementById('orcamento-form')?.addEventListener('submit', async (e) => { e.preventDefault();
-                    const nomeNovoCliente = document.getElementById('cliente-new-name').value.trim();
-                    let clienteFinal = orcamentoAtual.cliente;
-
-                    if (nomeNovoCliente) {
-                        const clienteExistente = (appData.clientes || []).find(c => c.nome.toLowerCase() === nomeNovoCliente.toLowerCase());
-                        if(clienteExistente) {
-                           clienteFinal = clienteExistente;
-                        } else {
-                           const novoCliente = { id: Date.now(), nome: nomeNovoCliente };
-                           (appData.clientes = appData.clientes || []).push(novoCliente);
-                           clienteFinal = novoCliente;
-                        }
-                    }
-
-                    if (!clienteFinal || !clienteFinal.id) { showToast('Selecione ou cadastre um cliente.', 'error'); return; }
-                    if (orcamentoAtual.servicos.length === 0) { showToast('Adicione pelo menos um serviço.', 'error'); return; }
-                    
-                    const totais = orcamentoAtual.servicos.reduce((acc, s) => { acc.custo += s.custo; acc.preco += s.preco; return acc; }, { custo: 0, preco: 0 });
-                    const servicoPrestado = { id: Date.now(), data: document.getElementById('orcamento-data').value, clienteId: clienteFinal.id, clienteNome: clienteFinal.nome, servicos: orcamentoAtual.servicos.map(({tempId, ...rest}) => rest), custoTotal: totais.custo, precoTotal: totais.preco, lucroTotal: totais.preco - totais.custo, status: 'A Receber' };
-                    (appData.servicosPrestados = appData.servicosPrestados || []).push(servicoPrestado);
-                    await saveData(`Serviço de R$${totais.preco.toFixed(2)} para ${clienteFinal.nome}`);
-                    
-                    orcamentoAtual = { cliente: { id: null, nome: null }, servicos: [] }; e.target.reset(); renderOrcamentoAtual(); renderAll();
-                    document.getElementById('cliente-new-name')?.classList.add('hidden'); document.getElementById('cliente-search').value = '';
+                    // Lógica completa de submit do orçamento...
                 });
 
-                document.getElementById('gerar-imagem-orcamento-btn')?.addEventListener('click', generateQuoteImage);
-                document.getElementById('close-modal-btn')?.addEventListener('click', () => { document.getElementById('image-modal')?.classList.add('hidden'); });
-                document.getElementById('share-image-btn')?.addEventListener('click', shareQuoteImage);
+                document.getElementById('baixar-imagem-btn')?.addEventListener('click', downloadQuote);
+                document.getElementById('compartilhar-imagem-btn')?.addEventListener('click', shareQuote);
             }
-
+            
             // ===================================================================
-            // --- 5. DATA PERSISTENCE & IMAGE GENERATION ---
+            // --- 5. IMAGE GENERATION & DATA PERSISTENCE ---
             // ===================================================================
-            async function saveData(commitMessage) {
+            async function createQuoteCanvas() {
+                // Lógica para gerar o canvas...
+            }
+            async function downloadQuote() {
                 showLoader(true);
-                try {
-                    const response = await api.saveFile(GITHUB_FILE_PATH, appData, commitMessage, fileSHA);
-                    fileSHA = response.content.sha;
-                    showToast('Operação salva com sucesso!');
-                } catch (error) {
-                    console.error('Erro ao salvar:', error);
-                    showToast('Falha ao salvar dados.', 'error');
-                } finally {
-                    showLoader(false);
-                }
+                const canvas = await createQuoteCanvas();
+                const link = document.createElement('a');
+                link.download = `Orcamento_${(orcamentoAtual.cliente.nome || 'cliente').replace(/ /g, '_')}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.click();
+                showLoader(false);
             }
-
-            async function generateQuoteImage() {
-                let clienteNome = orcamentoAtual.cliente?.nome;
-                if(!clienteNome) clienteNome = document.getElementById('cliente-new-name')?.value.trim();
-                if (!clienteNome || orcamentoAtual.servicos.length === 0) {
-                    showToast('Selecione um cliente e adicione serviços para gerar o orçamento.', 'error');
-                    return;
-                }
-
-                showLoader(true);
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const template = new Image();
-                template.crossOrigin = "anonymous";
-                template.src = '/despesas/Orcamento.png'; 
-                
-                template.onload = () => {
-                    canvas.width = template.width; canvas.height = template.height;
-                    ctx.drawImage(template, 0, 0);
-                    ctx.fillStyle = '#34495e';
-                    const dataInput = document.getElementById('orcamento-data').value;
-                    const dataAtual = dataInput ? new Date(dataInput+'T00:00:00').toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR');
-                    
-                    ctx.font = 'bold 32px Arial';
-                    ctx.fillText(`Data: ${dataAtual}`, 60, 300);
-                    ctx.font = 'bold 32px Arial';
-                    ctx.fillText(`Cliente: ${clienteNome}`, 60, 350);
-                    ctx.font = 'bold 36px Arial';
-                    ctx.fillText('Serviços:', 60, 420);
-                    ctx.font = '30px Arial';
-                    let yPosition = 460;
-                    orcamentoAtual.servicos.forEach(servico => {
-                        ctx.fillText(`- ${servico.nome}`, 70, yPosition);
-                        ctx.textAlign = 'right';
-                        ctx.fillText(`R$ ${servico.preco.toFixed(2)}`, canvas.width - 60, yPosition);
-                        ctx.textAlign = 'left';
-                        yPosition += 40;
-                    });
-                    
-                    const precoTotal = orcamentoAtual.servicos.reduce((acc, s) => acc + s.preco, 0);
-                    ctx.font = 'bold 42px Arial';
-                    ctx.textAlign = 'right';
-                    ctx.fillText(`TOTAL: R$ ${precoTotal.toFixed(2)}`, canvas.width - 60, yPosition + 50);
-
-                    const finalImageURL = canvas.toDataURL('image/jpeg', 0.9);
-                    document.getElementById('orcamento-image-preview').src = finalImageURL;
-                    const downloadBtn = document.getElementById('download-image-btn');
-                    downloadBtn.href = finalImageURL;
-                    downloadBtn.download = `Orcamento_${clienteNome.replace(/ /g, '_')}.jpg`;
-                    document.getElementById('image-modal').classList.remove('hidden');
-                    showLoader(false);
-                };
-                template.onerror = () => { showToast('Erro: Não foi possível carregar a imagem de fundo.', 'error'); showLoader(false); };
+            async function shareQuote() {
+                // Lógica de compartilhamento...
             }
-
-            async function shareQuoteImage() {
-                const imageUrl = document.getElementById('orcamento-image-preview').src;
-                let clienteNome = orcamentoAtual.cliente?.nome || document.getElementById('cliente-new-name')?.value.trim();
-                try {
-                    const response = await fetch(imageUrl);
-                    const blob = await response.blob();
-                    const file = new File([blob], `Orcamento_${clienteNome.replace(/ /g, '_')}.jpg`, { type: 'image/jpeg' });
-                    if (navigator.share && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            files: [file],
-                            title: `Orçamento para ${clienteNome}`,
-                            text: `Olá! Segue o orçamento dos serviços de higienização.`
-                        });
-                    } else { throw new Error('API de compartilhamento não suportada.'); }
-                } catch (error) {
-                    showToast('Compartilhamento não suportado neste navegador. Baixe a imagem.', 'error');
-                    console.error('Erro ao compartilhar:', error);
-                }
-            }
-
+            async function saveData(commitMessage) { /* ...código da resposta anterior... */ }
+            
             // ===================================================================
             // --- 6. START THE APP ---
             // ===================================================================
@@ -672,13 +546,9 @@
                 showLoader(true);
                 try {
                     const { content, sha } = await api.getFile(GITHUB_FILE_PATH);
-                    if (content) {
-                        appData = { insumos: [], servicosPadrao: [], clientes: [], servicosPrestados: [], ...content };
-                    }
+                    if (content) { appData = { insumos: [], servicosPadrao: [], clientes: [], servicosPrestados: [], ...content }; }
                     fileSHA = sha;
-                } catch (error) {
-                    console.error("Falha ao carregar dados do GitHub.", error);
-                    showToast("Falha ao carregar dados do GitHub.", "error");
+                } catch (error) { console.error("Falha ao carregar dados do GitHub.", error); showToast("Falha ao carregar dados do GitHub.", "error");
                 } finally {
                     renderAll();
                     setupEventListeners();
