@@ -56,7 +56,7 @@
     <!-- TELA DE LOGIN -->
     <div id="login-container" class="container">
         <div class="form-section">
-            <h2>Login</h2>
+            <h2>Login - Despesas Pessoais</h2>
             <input type="email" id="login-email" placeholder="Email" required>
             <input type="password" id="login-senha" placeholder="Senha" required>
             <button id="btn-login">Entrar</button>
@@ -223,12 +223,13 @@
         // --- FUNÇÕES DE DADOS COM FIREBASE ---
         function iniciarBancoDeDadosParaUsuario(userId) {
             const dadosIniciais = { despesas: [] };
-            firestore.collection('usuarios').doc(userId).set(dadosIniciais)
+            // Usa uma coleção diferente para o app de despesas
+            firestore.collection('usuarios_despesas').doc(userId).set(dadosIniciais)
                 .catch(error => console.error("Erro ao criar documento inicial: ", error));
         }
 
         function carregarDadosDoUsuario(userId) {
-            unsubscribe = firestore.collection('usuarios').doc(userId)
+            unsubscribe = firestore.collection('usuarios_despesas').doc(userId)
                 .onSnapshot((doc) => {
                     if (doc.exists) {
                         db = doc.data();
@@ -245,7 +246,7 @@
         function salvarDB() {
             const user = auth.currentUser;
             if (user) {
-                firestore.collection('usuarios').doc(user.uid).set(db)
+                firestore.collection('usuarios_despesas').doc(user.uid).set(db)
                     .catch(error => console.error("Erro ao salvar dados: ", error));
             }
         }
