@@ -32,9 +32,9 @@
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1rem; font-family: 'Roboto', sans-serif; }
         .inline-fields { display: flex; gap: 10px; align-items: center; }
         button, .action-btn { padding: 15px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
-        button:disabled, .action-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
         button.submit-btn { background-color: #27ae60; width: 100%; margin-top: 10px;}
-        button.delete-btn { background-color: #e74c3c; }
+        button.delete-btn, .delete-btn { background-color: #e74c3c; color: white; border:none; }
         
         /* Botões de Ação Pequenos (Editar/Excluir) */
         .action-btn-small { padding: 5px 10px; font-size: 0.8rem; border-radius: 5px; margin-left: 5px; }
@@ -46,6 +46,9 @@
 
         /* Listas de Itens */
         .item-vinculado { display: flex; justify-content: space-between; align-items: center; background-color: #ecf0f1; padding: 8px 12px; border-radius: 5px; margin-bottom: 8px; font-size: 0.9rem; }
+        .servico-padrao-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
+        .item-info .nome { font-weight: 500; color: #2c3e50; }
+        .item-info .custo, .item-info .tempo { color: #7f8c8d; font-size: 0.85rem; }
         .insumo-item { display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
         .insumo-item .nome { font-weight: 500; grid-column: 1 / -1; }
         .insumo-item .editable-fields { display: flex; align-items: center; gap: 5px; }
@@ -68,10 +71,12 @@
         /* Aba Clientes */
         .cliente-list-item { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 15px; border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s; }
         .cliente-list-item:hover { background-color: #f5f5f5; }
+        .cliente-actions button { margin-left: 10px; }
         #cliente-detalhes-nome { border-bottom: 2px solid #2980b9; padding-bottom: 10px; margin-bottom: 15px; }
         .historico-servico-item { background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 0.9rem; }
         .historico-servico-item .data { font-weight: bold; }
-
+        #novo-orcamento-cliente-btn { width: 100%; margin-bottom: 15px; }
+        
         /* Loader */
         .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; }
         .loader { border: 8px solid #f3f3f3; border-radius: 50%; border-top: 8px solid #3498db; width: 60px; height: 60px; animation: spin 1s linear infinite; }
@@ -116,6 +121,7 @@
                      <h3 id="cliente-detalhes-nome"></h3>
                      <button id="novo-orcamento-cliente-btn">Novo Orçamento para este Cliente</button>
                      <div class="divider"></div>
+                     <h4>Histórico de Serviços</h4>
                      <div id="cliente-detalhes-historico"></div>
                  </div>
             </div>
@@ -138,7 +144,7 @@
         let fileSHA = null;
         let orcamentoAtual = { cliente: { id: null, nome: null }, servicos: [] };
         let insumosVinculadosCache = [];
-        let clienteSelecionadoId = null; // Armazena o ID do cliente visto
+        let clienteSelecionadoId = null;
         const loader = document.getElementById('loader');
 
         // --- HELPERS (Notificações, UI, Cálculos) ---
@@ -162,7 +168,6 @@
                 const item = document.createElement('div');
                 item.className = 'cliente-list-item';
                 item.dataset.id = cliente.id;
-                // Adicionando os botões aqui
                 item.innerHTML = `
                     <span class="cliente-nome">${cliente.nome}</span>
                     <div class="cliente-actions">
@@ -170,8 +175,29 @@
                         <button class="action-btn-small delete-btn" data-id="${cliente.id}">Excluir</button>
                     </div>
                 `;
+                // Adiciona o listener de clique no nome do cliente, não no container todo
+                item.querySelector('.cliente-nome').addEventListener('click', () => {
+                    clienteSelecionadoId = cliente.id;
+                    renderClienteDetalhes(cliente.id);
+                });
                 lista.appendChild(item);
             });
+        }
+        
+        function renderClienteDetalhes(clienteId) {
+            const historico = (appData.servicosPrestados || []).filter(sp => sp.clienteId === clienteId).sort((a,b) => new Date(b.data) - new Date(a.data));
+            const cliente = appData.clientes.find(c => c.id === clienteId);
+            const nomeEl = document.getElementById('cliente-detalhes-nome'); if (nomeEl) nomeEl.textContent = `Detalhes de: ${cliente.nome}`;
+            const container = document.getElementById('cliente-detalhes-historico'); if (!container) return; container.innerHTML = '';
+            if (historico.length > 0) {
+                historico.forEach(h => {
+                    const item = document.createElement('div'); item.className = 'historico-servico-item';
+                    const dataFormatada = h.data ? new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR') : 'Data não informada';
+                    item.innerHTML = `<span class="data">${dataFormatada}:</span> ${(h.servicos || []).map(s=>s.nome).join(', ')} - <strong>Total: R$${h.precoTotal.toFixed(2)}</strong>`;
+                    container.appendChild(item);
+                });
+            } else { container.innerHTML = '<p class="empty-state">Nenhum serviço registrado.</p>'; }
+            document.getElementById('cliente-detalhes-container')?.classList.remove('hidden');
         }
 
         // (Colar aqui o restante das funções de RENDER)
@@ -179,57 +205,28 @@
         // --- SETUP EVENT LISTENERS ---
         function setupEventListeners() {
             // (Colar aqui todos os Event Listeners anteriores)
-
-            // NOVO: Event Listeners para a aba Clientes
             document.getElementById('clientes-lista')?.addEventListener('click', async (e) => {
-                const clienteItem = e.target.closest('.cliente-list-item');
-
-                // Lógica para Excluir Cliente
+                const clienteId = parseInt(e.target.dataset.id);
+                
                 if (e.target.matches('.delete-btn')) {
                     if (!confirm('Tem certeza que deseja excluir este cliente? O histórico de serviços dele será mantido, mas não será mais vinculado.')) return;
-                    const clienteId = parseInt(e.target.dataset.id);
                     appData.clientes = appData.clientes.filter(c => c.id !== clienteId);
                     await saveData(`Excluído cliente ID: ${clienteId}`);
                     document.getElementById('cliente-detalhes-container').classList.add('hidden');
                     renderAll();
-                    return; // Importante para não continuar
                 }
 
-                // Lógica para Editar Cliente
                 if (e.target.matches('.edit-btn')) {
-                    const clienteId = parseInt(e.target.dataset.id);
                     const cliente = appData.clientes.find(c => c.id === clienteId);
                     const novoNome = prompt('Digite o novo nome para o cliente:', cliente.nome);
                     if (novoNome && novoNome.trim() !== '') {
                         cliente.nome = novoNome.trim();
-                        // Atualiza o nome nos serviços já prestados
                         appData.servicosPrestados.forEach(sp => {
-                            if (sp.clienteId === clienteId) {
-                                sp.clienteNome = cliente.nome;
-                            }
+                            if (sp.clienteId === clienteId) sp.clienteNome = cliente.nome;
                         });
                         await saveData(`Editado nome do cliente ID: ${clienteId}`);
                         renderAll();
                     }
-                    return; // Importante para não continuar
-                }
-
-                // Lógica para mostrar histórico (clique no item principal)
-                if (clienteItem) {
-                    const clienteId = parseInt(clienteItem.dataset.id);
-                    clienteSelecionadoId = clienteId; // Armazena o ID do cliente
-                    const historico = (appData.servicosPrestados || []).filter(sp => sp.clienteId === clienteId).sort((a,b) => new Date(b.data) - new Date(a.data));
-                    const nomeEl = document.getElementById('cliente-detalhes-nome'); if (nomeEl) nomeEl.textContent = `Histórico de: ${clienteItem.querySelector('.cliente-nome').textContent}`;
-                    const container = document.getElementById('cliente-detalhes-historico'); if (!container) return; container.innerHTML = '';
-                    if (historico.length > 0) {
-                        historico.forEach(h => {
-                            const item = document.createElement('div'); item.className = 'historico-servico-item';
-                            const dataFormatada = h.data ? new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR') : 'Data não informada';
-                            item.innerHTML = `<span class="data">${dataFormatada}:</span> ${(h.servicos || []).map(s=>s.nome).join(', ')} - <strong>Total: R$${h.precoTotal.toFixed(2)}</strong>`;
-                            container.appendChild(item);
-                        });
-                    } else { container.innerHTML = '<p class="empty-state">Nenhum serviço registrado.</p>'; }
-                    document.getElementById('cliente-detalhes-container')?.classList.remove('hidden');
                 }
             });
 
@@ -238,13 +235,10 @@
                 const cliente = appData.clientes.find(c => c.id === clienteSelecionadoId);
                 if (!cliente) return;
                 
-                // Prepara o orçamento
                 orcamentoAtual = { cliente: { id: cliente.id, nome: cliente.nome }, servicos: [] };
                 
-                // Muda para a aba de orçamento
                 document.querySelector('.tab-link[data-tab="Lancamento"]').click();
                 
-                // Preenche os campos na aba de orçamento
                 document.getElementById('cliente-search').value = cliente.nome;
                 document.getElementById('cliente-new-name').classList.add('hidden');
                 document.getElementById('cliente-select').classList.add('hidden');
