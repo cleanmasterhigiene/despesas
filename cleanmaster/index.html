@@ -237,12 +237,22 @@
         });
         
         function iniciarApp() {
+            // Garante que a estrutura mínima do DB exista
             if (!db.insumos) db.insumos = [];
             if (!db.precos) db.precos = [];
             if (!db.servicos) db.servicos = [];
             if (!db.clientes) db.clientes = [];
             if (!db.configuracoes) db.configuracoes = dadosIniciaisPadrao.configuracoes;
             
+            // CORREÇÃO: Garante que as novas formas de pagamento existam na configuração do usuário
+            const metodosPadrao = dadosIniciaisPadrao.configuracoes.metodosPagamento;
+            metodosPadrao.forEach(metodo => {
+                if (!db.configuracoes.metodosPagamento.includes(metodo)) {
+                    db.configuracoes.metodosPagamento.push(metodo);
+                }
+            });
+            salvarDB(); // Salva a configuração atualizada se necessário
+
             abrirTab('orcamento');
             popularServicosSelect();
             renderizarAbaClientes();
@@ -349,7 +359,7 @@
                     const statusClass = pedido.status === 'A Receber' ? 'status-receber' : 'status-finalizado';
                     const statusText = pedido.status === 'Finalizado' ? `Finalizado (${pedido.metodoPagamento || ''})` : 'A Receber';
                     const botaoFinalizar = pedido.status === 'A Receber' ? `<button class="btn btn-warning btn-sm" onclick="abrirModalFinalizar('${pedido.id}', ${pedido.precoTotal})">Finalizar</button>` : '';
-                    pedidosHtml += `<div class="pedido-card ${pedido.status === 'Finalizado' ? 'finalizado' : ''}"><div class="pedido-header">${new Date(pedido.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'})} - <span class="${statusClass}">${statusText}</span></div><div>${pedido.itens}</div><strong>Total: R$ ${pedido.precoTotal.toFixed(2)}</strong><div style="margin-top: 10px; display: flex; gap: 5px;">${botaoFinalizar}</div></div>`;
+                    pedidosHtml += `<div class="pedido-card ${pedido.status === 'Finalizado' ? 'finalizado' : ''}"><div class="pedido-header">${new Date(pedido.data + 'T00:00:00').toLocaleDateString('pt-BR')} - <span class="${statusClass}">${statusText}</span></div><div>${pedido.itens}</div><strong>Total: R$ ${pedido.precoTotal.toFixed(2)}</strong><div style="margin-top: 10px; display: flex; gap: 5px;">${botaoFinalizar}</div></div>`;
                 });
                 lista.innerHTML += `<div class="cliente-card"><div class="cliente-header"><span class="cliente-nome" onclick="expandirCliente('${cliente.id}')">${cliente.nome}</span><div><button class="btn btn-warning btn-sm" onclick="editarCliente('${cliente.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="excluirCliente('${cliente.id}')">Excluir</button></div></div><div class="cliente-pedidos" id="pedidos-${cliente.id}">${pedidosHtml || '<p>Nenhum pedido.</p>'}</div></div>`;
             });
@@ -552,7 +562,7 @@
         
         // --- ABA RECEBIMENTOS ---
         function mudarMesRecebimentos(offset) {
-            mesAtualRecebimentos.setMonth(mesAtualRecebimentos.getMonth() + offset, 1); // dia 1 para evitar bugs de virada de mes
+            mesAtualRecebimentos.setMonth(mesAtualRecebimentos.getMonth() + offset, 1);
             renderizarAbaRecebimentos();
         }
         function renderizarAbaRecebimentos() {
@@ -675,15 +685,83 @@
         function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
         function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
         
-        // --- BOTÕES DE COMPARTILHAR E BAIXAR ---
+        // --- BOTÃO DE BAIXAR IMAGEM (NOVA VERSÃO) ---
         function baixarImagemOrcamento() {
+            if (!clienteSelecionadoOrcamento) {
+                alert("Selecione um cliente antes de gerar o orçamento.");
+                return;
+            }
             const node = document.getElementById('orcamento-para-imagem');
-            html2canvas(node, { scale: 2 }).then(canvas => {
+            const templateImg = new Image();
+            // Garante que o navegador não use uma imagem antiga do cache
+            templateImg.src = 'Orcamento.png?v=' + new Date().getTime();
+            templateImg.crossOrigin = "anonymous"; // Necessário se a imagem estiver em outro domínio no futuro
+            
+            templateImg.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = templateImg.width;
+                canvas.height = templateImg.height;
+                const ctx = canvas.getContext('2d');
+
+                // 1. Desenha a imagem de fundo
+                ctx.drawImage(templateImg, 0, 0);
+
+                // 2. Define estilos de texto
+                ctx.fillStyle = '#333'; // Cor do texto
+                ctx.font = '20px Arial';
+
+                // 3. Define as posições (X, Y) para desenhar o texto - ajuste se necessário
+                let yPosition = 350; // Posição Y inicial para o texto
+                const xPosition = 50;  // Posição X (margem esquerda)
+                const lineHeight = 30; // Espaçamento entre linhas
+
+                // 4. Desenha os dados do cliente
+                ctx.font = 'bold 22px Arial';
+                ctx.fillText(`Cliente: ${clienteSelecionadoOrcamento.nome}`, xPosition, yPosition);
+                yPosition += lineHeight;
+                if(clienteSelecionadoOrcamento.telefone) {
+                    ctx.font = '20px Arial';
+                    ctx.fillText(`Telefone: ${clienteSelecionadoOrcamento.telefone}`, xPosition, yPosition);
+                    yPosition += lineHeight;
+                }
+                 if(clienteSelecionadoOrcamento.endereco) {
+                    ctx.fillText(`Endereço: ${clienteSelecionadoOrcamento.endereco}`, xPosition, yPosition);
+                    yPosition += lineHeight;
+                }
+                
+                yPosition += lineHeight; // Espaço extra
+
+                // 5. Desenha os serviços
+                ctx.font = 'bold 22px Arial';
+                ctx.fillText('Serviços Contratados:', xPosition, yPosition);
+                yPosition += lineHeight;
+                ctx.font = '20px Arial';
+                servicosAdicionados.forEach(servico => {
+                    ctx.fillText(`- ${servico.nome}`, xPosition, yPosition);
+                    const precoTexto = `R$ ${servico.preco.toFixed(2)}`;
+                    const precoLargura = ctx.measureText(precoTexto).width;
+                    ctx.fillText(precoTexto, canvas.width - xPosition - precoLargura, yPosition);
+                    yPosition += lineHeight;
+                });
+
+                // 6. Desenha os totais
+                yPosition += lineHeight; // Espaço extra
+                const precoTotal = servicosAdicionados.reduce((acc, s) => acc + s.preco, 0);
+                const totalTexto = `Valor Total: R$ ${precoTotal.toFixed(2)}`;
+                ctx.font = 'bold 24px Arial';
+                const totalLargura = ctx.measureText(totalTexto).width;
+                ctx.fillText(totalTexto, canvas.width - xPosition - totalLargura, yPosition);
+
+                // 7. Gera e baixa a imagem
                 const link = document.createElement('a');
-                link.download = `orcamento-${clienteSelecionadoOrcamento?.nome.replace(/ /g, '_') || 'sem-cliente'}-${new Date().toLocaleDateString()}.png`;
+                link.download = `orcamento-${clienteSelecionadoOrcamento.nome.replace(/ /g, '_')}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-            });
+            };
+
+            templateImg.onerror = () => {
+                alert("Erro ao carregar a imagem de template 'Orcamento.png'. Verifique se o arquivo está na mesma pasta que o index.html ou no local correto do repositório.");
+            }
         }
         async function compartilharOrcamento() {
             const precoTotal = servicosAdicionados.reduce((acc, s) => acc + s.preco, 0);
