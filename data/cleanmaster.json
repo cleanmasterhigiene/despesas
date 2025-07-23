@@ -1,105 +1,52 @@
 {
-  "insumos": [
-    {
-      "id": 1753269814340,
-      "nome": "testeinsumo",
-      "precoTotal": 100,
-      "quantidadeTotal": 10,
-      "unidadeMedida": "L",
-      "custoPorUnidade": 10
-    },
-    {
-      "id": 1753269862812,
-      "nome": "teste insumo 2",
-      "precoTotal": 10,
-      "quantidadeTotal": 1,
-      "unidadeMedida": "L",
-      "custoPorUnidade": 10
-    }
-  ],
-  "servicosPadrao": [
-    {
-      "id": 1753269845588,
-      "nome": "teste sofa 123",
-      "custoMaoDeObra": 10,
-      "custoImposto": 10,
-      "tempoEstimado": 120,
-      "insumosVinculados": [
+    "clientes": [
         {
-          "insumoId": 1753269814340,
-          "quantidade": 2
+            "id": "cliente_1721153282436",
+            "nome": "Alex Lopes de oliveira",
+            "telefone": "",
+            "endereco": ""
         }
-      ]
-    },
-    {
-      "id": 1753269904260,
-      "nome": "teste sofa 2",
-      "custoMaoDeObra": 10,
-      "custoImposto": 10,
-      "tempoEstimado": 50,
-      "insumosVinculados": [
+    ],
+    "servicos": [
         {
-          "insumoId": 1753269814340,
-          "quantidade": 1
+            "id": "servico_1721153282436",
+            "clienteId": "cliente_1721153282436",
+            "itens": "teste sofa 2, teste sofa 123",
+            "data": "2025-07-23",
+            "custoTotal": 110,
+            "precoTotal": 180,
+            "status": "A Receber",
+            "metodoPagamento": null,
+            "valorRecebido": null
+        }
+    ],
+    "precos": [
+        {
+            "id": "preco_1",
+            "nome": "teste do preço",
+            "custo": 40,
+            "preco": 200
         },
         {
-          "insumoId": 1753269862812,
-          "quantidade": 1
-        }
-      ]
-    },
-    {
-      "id": 1753280441853,
-      "nome": "teste do preço",
-      "precoVenda": 200,
-      "custoMaoDeObra": 10,
-      "custoImposto": 10,
-      "tempoEstimado": 50,
-      "insumosVinculados": [
-        {
-          "insumoId": 1753269814340,
-          "quantidade": 1
+            "id": "preco_2",
+            "nome": "teste sofa 2",
+            "custo": 50,
+            "preco": 90
         },
         {
-          "insumoId": 1753269862812,
-          "quantidade": 1
+            "id": "preco_3",
+            "nome": "teste sofa 123",
+            "custo": 60,
+            "preco": 90
         }
-      ]
+    ],
+    "insumos": [],
+    "configuracoes": {
+        "metodosPagamento": [
+            "Dinheiro",
+            "Pix",
+            "Cartão de Crédito",
+            "Cartão de Débito"
+        ]
     }
-  ],
-  "clientes": [
-    {
-      "id": 1753269954516,
-      "nome": "Alex Lopes de oliveira"
-    }
-  ],
-  "servicosPrestados": [
-    {
-      "id": 1753269954516,
-      "data": "2025-07-23",
-      "clienteId": 1753269954516,
-      "clienteNome": "Alex Lopes de oliveira",
-      "servicos": [
-        {
-          "servicoPadraoId": 1753269904260,
-          "nome": "teste sofa 2",
-          "custo": 40,
-          "preco": 80
-        },
-        {
-          "servicoPadraoId": 1753269845588,
-          "nome": "teste sofa 123",
-          "custo": 40,
-          "preco": 100
-        }
-      ],
-      "custoTotal": 80,
-      "precoTotal": 180,
-      "lucroTotal": 100
-    }
-  ],
-  "recebimentos": [],
-  "settings": {
-    "taxaCartao": 2.5
-  }
 }
