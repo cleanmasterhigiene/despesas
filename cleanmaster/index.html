@@ -1,5 +1,104 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean Master</title>
+    <style>
+        /* Estilos Base */
+        body { font-family: 'Roboto', sans-serif; background-color: #f4f6f8; margin: 0; color: #333; }
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+        header { background-color: #2980b9; color: white; padding: 15px 20px; display: flex; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        header h1 { margin: 0; font-size: 1.2rem; text-align: center; flex-grow: 1; }
+        .back-button { color: white; text-decoration: none; font-size: 1.5rem; position: absolute; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        h2, h3, h4 { color: #2c3e50; margin-top: 0; }
+        h4 { font-size: 1rem; color: #34495e; border-bottom: 1px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 15px; }
+        .divider { height: 1px; background-color: #ecf0f1; margin: 20px 0; }
+        label { font-weight: 500; font-size: 0.9rem; color: #34495e; margin-bottom: 5px; display: block; }
+        .hidden { display: none; }
+        .empty-state { text-align: center; color: #95a5a6; padding: 20px; background-color: #f9f9f9; border-radius: 8px; }
+
+        /* Abas */
+        .tabs { display: flex; flex-wrap: wrap; border-bottom: 2px solid #ddd; margin-bottom: 20px; background-color: #fff; border-radius: 8px 8px 0 0; }
+        .tab-link { flex-grow: 1; background: none; border: none; padding: 15px 10px; cursor: pointer; font-size: 0.95rem; color: #7f8c8d; border-bottom: 3px solid transparent; text-align: center; }
+        .tab-link.active { color: #2980b9; border-bottom-color: #2980b9; font-weight: 500; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Formulários */
+        form { display: flex; flex-direction: column; gap: 15px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1rem; font-family: 'Roboto', sans-serif; }
+        textarea { resize: vertical; }
+        .inline-fields { display: flex; gap: 10px; }
+        button { padding: 15px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        button.submit-btn { background-color: #27ae60; }
+        button.image-btn { background-color: #f39c12; }
+        button.delete-btn { background-color: #e74c3c; color: white; border-radius: 50%; width: 24px; height: 24px; padding: 0; font-size: 1rem; line-height: 24px; text-align: center; flex-shrink: 0; border: none; }
+
+        /* Controles de Insumos */
+        .add-insumo-controls { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; align-items: center; }
+        #sp-add-insumo-btn { padding: 12px; }
+
+        /* Listas de Itens */
+        .item-vinculado { display: flex; justify-content: space-between; align-items: center; background-color: #ecf0f1; padding: 8px 12px; border-radius: 5px; margin-bottom: 8px; font-size: 0.9rem; }
+        .servico-padrao-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
+        .servico-padrao-item:last-child { border-bottom: none; }
+        .item-info .nome { font-weight: 500; color: #2c3e50; }
+        .item-info .custo, .item-info .tempo { color: #7f8c8d; font-size: 0.85rem; }
+        .insumo-item { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
+        .insumo-item .nome { font-weight: 500; grid-column: 1 / 4; }
+        .insumo-item .editable-fields { display: flex; align-items: center; gap: 5px; grid-column: 1 / 3; }
+        .insumo-item .editable-fields input { width: 80px; text-align: center; padding: 8px; }
+        .insumo-item .insumo-custo-calculado { grid-column: 1 / 3; font-size: 0.85rem; color: #7f8c8d; justify-self: start; }
+        .insumo-item .delete-btn { justify-self: end; grid-column: 3 / 4; grid-row: 2 / 4; }
+
+        /* Orçamento e Lançamento */
+        .orcamento-itens-container { border: 1px solid #eee; border-radius: 8px; margin-top: 15px; padding: 10px; min-height: 50px; }
+        .orcamento-item { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 8px; }
+        .orcamento-item .item-preco { text-align: right; }
+        .orcamento-item .item-preco label { font-size: 0.8rem; display: block; margin-bottom: 2px; color: #7f8c8d; }
+        .orcamento-item .item-preco-input { width: 100px; padding: 8px; text-align: right; }
+        .finance-summary { background-color: #f9fafb; padding: 15px; border-radius: 8px; }
+        .finance-row { display: flex; justify-content: space-between; font-size: 1.1rem; padding: 8px 0; border-bottom: 1px solid #ecf0f1; }
+        .finance-row:last-child { border-bottom: none; }
+        .finance-row.lucro { font-size: 1.2rem; font-weight: bold; }
+        .finance-row.lucro strong { color: #27ae60; }
+
+        /* Aba Clientes */
+        #clientes-lista .cliente-list-item { cursor: pointer; padding: 15px; border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s; }
+        #clientes-lista .cliente-list-item:hover { background-color: #f5f5f5; }
+        #cliente-detalhes-nome { border-bottom: 2px solid #2980b9; padding-bottom: 10px; margin-bottom: 15px; }
+        .historico-servico-item { background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 0.9rem; }
+        .historico-servico-item .data { font-weight: bold; }
+
+        /* Loader */
+        .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .loader { border: 8px solid #f3f3f3; border-radius: 50%; border-top: 8px solid #3498db; width: 60px; height: 60px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Notificação (Toast) */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 15px 20px; border-radius: 8px; color: white; font-weight: 500; box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 0; transform: translateX(100%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast.success { background-color: #27ae60; }
+        .toast.error { background-color: #e74c3c; }
+        
+        /* Modal de Imagem */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .modal-content h2 { margin-top: 0; }
+        .close-button { float: right; font-size: 1.8rem; font-weight: bold; cursor: pointer; line-height: 1; }
+        #image-preview-container { width: 100%; margin: 20px 0; border: 1px solid #ddd; }
+        #orcamento-image-preview { width: 100%; display: block; }
+        .modal-actions { display: flex; gap: 15px; justify-content: center; margin-top: 15px; }
+        .action-btn { flex-grow: 1; text-decoration: none; padding: 15px; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; text-align: center; }
+        .action-btn.download { background-color: #2980b9; }
+        .action-btn.share { background-color: #27ae60; }
+    </style>
+</head>
 <body>
     <div id="loader" class="loader-overlay" style="display: none;"><div class="loader"></div></div>
     <div id="toast-container"></div>
@@ -10,10 +109,117 @@
     </header>
 
     <main class="container">
-        <button type="button" id="gerar-imagem-orcamento-btn" class="image-btn" disabled>Gerar Imagem do Orçamento</button>
-        <button type="submit" class="submit-btn">Salvar Serviço Prestado</button>
-    </form>
+        <div class="tabs">
+            <button class="tab-link active" data-tab="Lancamento">Orçamento</button>
+            <button class="tab-link" data-tab="Clientes">Clientes</button>
+            <button class="tab-link" data-tab="Servicos">Serviços</button>
+            <button class="tab-link" data-tab="Insumos">Insumos</button>
+        </div>
+
+        <div id="Lancamento" class="tab-content active">
+            <h2>Criar Orçamento / Lançar Serviço</h2>
+            <form id="orcamento-form" class="card">
+                <h4>1. Cliente</h4>
+                <div class="inline-fields">
+                    <input type="text" id="cliente-search" placeholder="Buscar cliente existente..."><button type="button" id="show-new-client-btn">Novo +</button>
+                </div>
+                <select id="cliente-select" class="hidden"></select>
+                <input type="text" id="cliente-new-name" class="hidden" placeholder="Nome do Novo Cliente">
+                <div class="divider"></div>
+                <h4>2. Serviços</h4>
+                <div class="inline-fields">
+                    <select id="servico-select-orcamento"></select><button type="button" id="add-servico-orcamento-btn">Adicionar</button>
+                </div>
+                <div class="orcamento-itens-container"><div id="orcamento-itens-lista"></div></div>
+                <div class="divider"></div>
+                <h4>3. Resumo Financeiro</h4>
+                <div class="finance-summary">
+                    <div class="finance-row"><span>Custo Total:</span> <strong id="orcamento-custo-total">R$ 0,00</strong></div>
+                    <div class="finance-row"><span>Preço Total:</span> <strong id="orcamento-preco-total">R$ 0,00</strong></div>
+                    <div class="finance-row lucro"><span>Lucro Total:</span> <strong id="orcamento-lucro-total">R$ 0,00</strong></div>
+                </div>
+                <div class="divider"></div>
+                <input type="date" id="orcamento-data" required>
+                <div class="inline-fields">
+                    <button type="button" id="gerar-imagem-orcamento-btn" class="image-btn" disabled>Gerar Imagem</button>
+                    <button type="submit" class="submit-btn">Salvar Serviço</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="Clientes" class="tab-content">
+            <div class="card">
+                <h3>Meus Clientes</h3>
+                <input type="text" id="clientes-filter-input" placeholder="Filtrar clientes..."><div id="clientes-lista"></div>
+            </div>
+            <div id="cliente-detalhes-container" class="hidden">
+                 <div class="card">
+                     <h3 id="cliente-detalhes-nome"></h3><div id="cliente-detalhes-historico"></div>
+                 </div>
+            </div>
+        </div>
+
+        <div id="Servicos" class="tab-content">
+             <div class="card">
+                <h3>Criar/Editar Modelo de Serviço</h3>
+                <form id="servico-padrao-form">
+                    <input type="text" id="sp-nome" placeholder="Nome do Serviço (ex: Limpeza Sofá 3 Lugares)" required>
+                    <div class="inline-fields">
+                        <input type="number" id="sp-mao-de-obra" placeholder="Mão de Obra (R$)" step="0.01"><input type="number" id="sp-imposto" placeholder="Impostos (R$)" step="0.01">
+                    </div>
+                    <input type="number" id="sp-tempo" placeholder="Tempo Médio em Minutos (ex: 120)">
+                    <h4>Insumos Vinculados</h4>
+                    <div id="sp-insumos-container"></div>
+                    <div class="add-insumo-controls">
+                        <select id="sp-insumo-select"></select>
+                        <input type="number" id="sp-insumo-quantidade" placeholder="Qtd." step="0.01">
+                        <button type="button" id="sp-add-insumo-btn">Vincular Insumo</button>
+                    </div>
+                    <button type="submit" class="submit-btn">Salvar Modelo de Serviço</button>
+                </form>
+            </div>
+            <div class="card"><h3>Meus Modelos de Serviço</h3><div id="servicos-padrao-lista"></div></div>
+        </div>
+
+        <div id="Insumos" class="tab-content">
+            <div class="card">
+                <h3>Cadastrar Novo Insumo</h3>
+                <form id="insumo-form">
+                    <input type="text" id="insumo-nome" placeholder="Nome do Insumo" required>
+                    <input type="number" id="insumo-preco-total" placeholder="Preço Total Pago (R$)" step="0.01" required>
+                    <div class="inline-fields">
+                        <input type="number" id="insumo-qtd-total" placeholder="Qtd. Total" step="0.01" required>
+                        <select id="insumo-unidade" required>
+                            <option value="L">Litro (L)</option><option value="ml">Mililitro (ml)</option>
+                            <option value="kg">Quilo (kg)</option><option value="g">Grama (g)</option>
+                            <option value="un">Unidade (un)</option>
+                        </select>
+                    </div>
+                    <button type="submit">Salvar Insumo</button>
+                </form>
+            </div>
+            <div class="card"><h3>Meus Insumos Cadastrados</h3><div id="insumos-lista"></div></div>
+        </div>
+        
+        <div id="Relatorio" class="tab-content">
+            <div class="card">
+                <h3>Relatórios</h3>
+                <p>Esta área será desenvolvida em breve.</p>
+            </div>
+        </div>
     </main>
+
+    <template id="orcamento-item-template">
+        <div class="orcamento-item">
+            <div class="item-info">
+                <div class="nome"></div><div class="custo"></div>
+            </div>
+            <div class="item-preco">
+                <label>Preço</label><input type="number" class="item-preco-input" step="0.01">
+            </div>
+            <button type="button" class="delete-btn">&times;</button>
+        </div>
+    </template>
     
     <div id="image-modal" class="modal-overlay hidden">
         <div class="modal-content">
@@ -30,6 +236,451 @@
     </div>
     
     <script src="/despesas/js/github-api.js"></script>
-    <script src="/despesas/cleanmaster/cleanmaster.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // ===================================================================
+            // --- 1. STATE & API ---
+            // ===================================================================
+            const api = new GitHubAPI();
+            const GITHUB_FILE_PATH = 'data/cleanmaster.json';
+            let appData = { insumos: [], servicosPadrao: [], clientes: [], servicosPrestados: [] };
+            let fileSHA = null;
+            let orcamentoAtual = { cliente: { id: null, nome: null }, servicos: [] };
+            let insumosVinculadosCache = [];
+            const loader = document.getElementById('loader');
+
+            // ===================================================================
+            // --- 2. HELPERS (Notificações, UI, Cálculos) ---
+            // ===================================================================
+            const showLoader = (show) => { if (loader) loader.style.display = show ? 'flex' : 'none'; };
+
+            function showToast(message, type = 'success') {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                container.appendChild(toast);
+                setTimeout(() => toast.classList.add('show'), 100);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    toast.addEventListener('transitionend', () => toast.remove());
+                }, 4000);
+            }
+
+            function calcularCustoTotalServicoPadrao(servicoPadrao) {
+                let custo = (servicoPadrao.custoMaoDeObra || 0) + (servicoPadrao.custoImposto || 0);
+                (servicoPadrao.insumosVinculados || []).forEach(itemVinculado => {
+                    const insumo = (appData.insumos || []).find(i => i.id == itemVinculado.insumoId);
+                    if (insumo) custo += insumo.custoPorUnidade * itemVinculado.quantidade;
+                });
+                return custo;
+            }
+
+            // ===================================================================
+            // --- 3. RENDER FUNCTIONS (Atualizam a tela) ---
+            // ===================================================================
+            function renderAll() {
+                renderInsumosList();
+                renderServicosPadraoList();
+                populateInsumoSelects();
+                populateServicoPadraoSelect();
+                renderClientesList();
+            }
+
+            function renderInsumosList() {
+                const lista = document.getElementById('insumos-lista');
+                if (!lista) return;
+                lista.innerHTML = '';
+                if (!appData.insumos || appData.insumos.length === 0) {
+                    lista.innerHTML = '<p class="empty-state">Nenhum insumo cadastrado.</p>';
+                    return;
+                }
+                appData.insumos.forEach(insumo => {
+                    const item = document.createElement('div');
+                    item.className = 'insumo-item';
+                    item.dataset.id = insumo.id;
+                    item.innerHTML = `
+                        <span class="nome">${insumo.nome}</span>
+                        <div class="editable-fields">
+                            <span>R$</span><input type="number" class="insumo-preco-edit" value="${(insumo.precoTotal || 0).toFixed(2)}" step="0.01">
+                            <span>/</span><input type="number" class="insumo-qtd-edit" value="${insumo.quantidadeTotal || 0}" step="0.01">
+                            <span>${insumo.unidadeMedida}</span>
+                        </div>
+                        <div class="insumo-custo-calculado">Custo: R$ ${(insumo.custoPorUnidade || 0).toFixed(2)}/${insumo.unidadeMedida}</div>
+                        <button type="button" class="delete-btn" data-id="${insumo.id}">&times;</button>
+                    `;
+                    lista.appendChild(item);
+                });
+            }
+
+            function renderServicosPadraoList() {
+                const lista = document.getElementById('servicos-padrao-lista');
+                if(!lista) return;
+                lista.innerHTML = '';
+                if (!appData.servicosPadrao || appData.servicosPadrao.length === 0) {
+                    lista.innerHTML = '<p class="empty-state">Nenhum modelo de serviço cadastrado.</p>';
+                    return;
+                }
+                appData.servicosPadrao.forEach(sp => {
+                    const custoTotal = calcularCustoTotalServicoPadrao(sp);
+                    const item = document.createElement('div');
+                    item.className = 'servico-padrao-item';
+                    item.innerHTML = `<div class="item-info"><div class="nome">${sp.nome}</div><div class="custo">Custo Base: R$ ${custoTotal.toFixed(2)}</div></div><button type="button" class="delete-btn" data-id="${sp.id}">&times;</button>`;
+                    lista.appendChild(item);
+                });
+            }
+
+            function populateInsumoSelects() {
+                const select = document.getElementById('sp-insumo-select');
+                if(!select) return;
+                select.innerHTML = '<option value="">Selecione um insumo</option>';
+                (appData.insumos || []).forEach(insumo => select.add(new Option(insumo.nome, insumo.id)));
+            }
+            
+            function populateServicoPadraoSelect() {
+                const select = document.getElementById('servico-select-orcamento');
+                if(!select) return;
+                select.innerHTML = '<option value="">Selecione um serviço...</option>';
+                (appData.servicosPadrao || []).forEach(sp => select.add(new Option(sp.nome, sp.id)));
+            }
+
+            function renderInsumosVinculados() {
+                const container = document.getElementById('sp-insumos-container');
+                if(!container) return;
+                container.innerHTML = '';
+                insumosVinculadosCache.forEach(item => {
+                    const insumoData = (appData.insumos || []).find(i => i.id == item.insumoId);
+                    if(!insumoData) return;
+                    const div = document.createElement('div');
+                    div.className = 'item-vinculado';
+                    div.innerHTML = `<span>${item.quantidade} ${insumoData.unidadeMedida} de ${insumoData.nome}</span><button type="button" class="delete-btn" data-insumo-id="${item.insumoId}">&times;</button>`;
+                    container.appendChild(div);
+                });
+            }
+
+            function renderClientesList(filter = '') {
+                const lista = document.getElementById('clientes-lista');
+                if(!lista) return;
+                lista.innerHTML = '';
+                const filtered = (appData.clientes || []).filter(c => c.nome.toLowerCase().includes(filter.toLowerCase()));
+                if (filtered.length === 0 && filter === '') {
+                    lista.innerHTML = '<p class="empty-state">Nenhum cliente cadastrado.</p>'; return;
+                }
+                if (filtered.length === 0 && filter !== '') {
+                    lista.innerHTML = '<p class="empty-state">Nenhum cliente encontrado.</p>'; return;
+                }
+                filtered.forEach(cliente => {
+                    const item = document.createElement('div');
+                    item.className = 'cliente-list-item';
+                    item.textContent = cliente.nome;
+                    item.dataset.id = cliente.id;
+                    lista.appendChild(item);
+                });
+            }
+
+            function renderOrcamentoAtual() {
+                const lista = document.getElementById('orcamento-itens-lista');
+                const template = document.getElementById('orcamento-item-template');
+                if(!lista || !template) return;
+                lista.innerHTML = '';
+
+                orcamentoAtual.servicos.forEach(item => {
+                    const clone = template.content.cloneNode(true);
+                    clone.querySelector('.nome').textContent = item.nome;
+                    clone.querySelector('.custo').textContent = `Custo: R$ ${item.custo.toFixed(2)}`;
+                    const precoInput = clone.querySelector('.item-preco-input');
+                    precoInput.value = item.preco.toFixed(2);
+                    precoInput.dataset.tempId = item.tempId;
+                    clone.querySelector('.delete-btn').dataset.tempId = item.tempId;
+                    lista.appendChild(clone);
+                });
+                updateOrcamentoTotal();
+            }
+
+            function updateOrcamentoTotal() {
+                const custoTotal = orcamentoAtual.servicos.reduce((acc, s) => acc + s.custo, 0);
+                const precoTotal = orcamentoAtual.servicos.reduce((acc, s) => acc + s.preco, 0);
+                const lucroTotal = precoTotal - custoTotal;
+                const custoEl = document.getElementById('orcamento-custo-total');
+                const precoEl = document.getElementById('orcamento-preco-total');
+                const lucroEl = document.getElementById('orcamento-lucro-total');
+                if (custoEl) custoEl.textContent = `R$ ${custoTotal.toFixed(2)}`;
+                if (precoEl) precoEl.textContent = `R$ ${precoTotal.toFixed(2)}`;
+                if (lucroEl) lucroEl.textContent = `R$ ${lucroTotal.toFixed(2)}`;
+                
+                const temItens = orcamentoAtual.servicos.length > 0 && orcamentoAtual.cliente && orcamentoAtual.cliente.id;
+                const btn = document.getElementById('gerar-imagem-orcamento-btn');
+                if(btn) btn.disabled = !temItens;
+            }
+            
+            // ===================================================================
+            // --- 4. EVENT LISTENERS & IMAGE GENERATION ---
+            // ===================================================================
+            function setupEventListeners() {
+                document.querySelector('.tabs')?.addEventListener('click', (e) => {
+                    if (e.target.matches('.tab-link')) {
+                        const tabName = e.target.dataset.tab;
+                        document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = "none");
+                        document.querySelectorAll('.tab-link').forEach(tl => tl.classList.remove("active"));
+                        const tabContent = document.getElementById(tabName);
+                        if (tabContent) tabContent.style.display = "block";
+                        e.target.classList.add("active");
+                    }
+                });
+
+                document.getElementById('insumo-form')?.addEventListener('submit', async (e) => { e.preventDefault();
+                    const form = e.target;
+                    const novoInsumo = { id: Date.now(), nome: form.elements['insumo-nome'].value, precoTotal: parseFloat(form.elements['insumo-preco-total'].value), quantidadeTotal: parseFloat(form.elements['insumo-qtd-total'].value), unidadeMedida: form.elements['insumo-unidade'].value };
+                    if (!novoInsumo.nome || !novoInsumo.precoTotal || !novoInsumo.quantidadeTotal) { showToast('Preencha todos os campos do insumo.', 'error'); return; }
+                    novoInsumo.custoPorUnidade = novoInsumo.precoTotal / novoInsumo.quantidadeTotal;
+                    appData.insumos.push(novoInsumo);
+                    await saveData(`Cadastrado insumo: ${novoInsumo.nome}`);
+                    form.reset(); renderInsumosList(); populateInsumoSelects();
+                });
+
+                document.getElementById('insumos-lista')?.addEventListener('change', async (e) => {
+                    if (e.target.matches('.insumo-preco-edit, .insumo-qtd-edit')) {
+                        const itemDiv = e.target.closest('.insumo-item'); const insumoId = parseInt(itemDiv.dataset.id);
+                        const insumo = appData.insumos.find(i => i.id === insumoId);
+                        if (insumo) {
+                            insumo.precoTotal = parseFloat(itemDiv.querySelector('.insumo-preco-edit').value);
+                            insumo.quantidadeTotal = parseFloat(itemDiv.querySelector('.insumo-qtd-edit').value);
+                            if (insumo.quantidadeTotal > 0) insumo.custoPorUnidade = insumo.precoTotal / insumo.quantidadeTotal; else insumo.custoPorUnidade = 0;
+                            await saveData(`Atualizado insumo: ${insumo.nome}`); renderInsumosList(); populateInsumoSelects();
+                        }
+                    }
+                });
+
+                document.getElementById('insumos-lista')?.addEventListener('click', async (e) => {
+                    if (e.target.matches('.delete-btn')) { if (!confirm('Excluir este insumo?')) return;
+                        const insumoId = parseInt(e.target.dataset.id); appData.insumos = appData.insumos.filter(i => i.id !== insumoId);
+                        await saveData(`Excluído insumo ID: ${insumoId}`); renderInsumosList(); populateInsumoSelects();
+                    }
+                });
+
+                document.getElementById('sp-add-insumo-btn')?.addEventListener('click', () => {
+                    const insumoId = document.getElementById('sp-insumo-select').value; const quantidade = parseFloat(document.getElementById('sp-insumo-quantidade').value);
+                    if (!insumoId || !quantidade) { showToast('Selecione um insumo e a quantidade.', 'error'); return; }
+                    if (!insumosVinculadosCache.some(i => i.insumoId == insumoId)) { insumosVinculadosCache.push({ insumoId: parseInt(insumoId), quantidade }); renderInsumosVinculados(); }
+                });
+                
+                document.getElementById('sp-insumos-container')?.addEventListener('click', (e) => {
+                    if (e.target.matches('.delete-btn')) { const insumoIdToRemove = parseInt(e.target.dataset.insumoId); insumosVinculadosCache = insumosVinculadosCache.filter(i => i.insumoId !== insumoIdToRemove); renderInsumosVinculados(); }
+                });
+                
+                document.getElementById('servico-padrao-form')?.addEventListener('submit', async (e) => { e.preventDefault();
+                    const form = e.target; const nome = form.elements['sp-nome'].value;
+                    if (!nome) { showToast('O nome do serviço é obrigatório.', 'error'); return; }
+                    const novoServico = { id: Date.now(), nome, custoMaoDeObra: parseFloat(form.elements['sp-mao-de-obra'].value) || 0, custoImposto: parseFloat(form.elements['sp-imposto'].value) || 0, tempoEstimado: parseInt(form.elements['sp-tempo'].value) || 0, insumosVinculados: insumosVinculadosCache };
+                    appData.servicosPadrao.push(novoServico);
+                    await saveData(`Criado modelo de serviço: ${novoServico.nome}`);
+                    form.reset(); insumosVinculadosCache = []; renderInsumosVinculados(); renderServicosPadraoList(); populateServicoPadraoSelect();
+                });
+                
+                document.getElementById('servicos-padrao-lista')?.addEventListener('click', async (e) => {
+                    if (e.target.matches('.delete-btn')) { if (!confirm('Excluir este modelo?')) return;
+                        const servicoId = parseInt(e.target.dataset.id); appData.servicosPadrao = appData.servicosPadrao.filter(sp => sp.id !== servicoId);
+                        await saveData(`Excluído modelo ID: ${servicoId}`); renderServicosPadraoList(); populateServicoPadraoSelect();
+                    }
+                });
+                
+                document.getElementById('clientes-filter-input')?.addEventListener('input', (e) => renderClientesList(e.target.value));
+                
+                document.getElementById('clientes-lista')?.addEventListener('click', (e) => {
+                    if (e.target.matches('.cliente-list-item')) {
+                        const clienteId = parseInt(e.target.dataset.id);
+                        const historico = (appData.servicosPrestados || []).filter(sp => sp.clienteId === clienteId).sort((a,b) => new Date(b.data) - new Date(a.data));
+                        const nomeEl = document.getElementById('cliente-detalhes-nome'); if (nomeEl) nomeEl.textContent = `Histórico de: ${e.target.textContent}`;
+                        const container = document.getElementById('cliente-detalhes-historico'); if (!container) return; container.innerHTML = '';
+                        if (historico.length > 0) {
+                            historico.forEach(h => {
+                                const item = document.createElement('div'); item.className = 'historico-servico-item';
+                                const dataFormatada = h.data ? new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR') : 'Data não informada';
+                                item.innerHTML = `<span class="data">${dataFormatada}:</span> ${(h.servicos || []).map(s=>s.nome).join(', ')} - <strong>Total: R$${h.precoTotal.toFixed(2)}</strong>`;
+                                container.appendChild(item);
+                            });
+                        } else { container.innerHTML = '<p class="empty-state">Nenhum serviço registrado.</p>'; }
+                        document.getElementById('cliente-detalhes-container')?.classList.remove('hidden');
+                    }
+                });
+
+                document.getElementById('cliente-search')?.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const select = document.getElementById('cliente-select');
+                    if(!select) return; select.innerHTML = '';
+                    if (searchTerm.length > 0) {
+                        const filtered = (appData.clientes || []).filter(c => c.nome.toLowerCase().includes(searchTerm));
+                        if (filtered.length > 0) { filtered.forEach(c => select.add(new Option(c.nome, c.id))); select.classList.remove('hidden'); } else { select.classList.add('hidden'); }
+                    } else { select.classList.add('hidden'); }
+                });
+                
+                document.getElementById('cliente-select')?.addEventListener('change', (e) => {
+                    const clienteId = e.target.value; const cliente = appData.clientes.find(c => c.id == clienteId);
+                    if (cliente) { orcamentoAtual.cliente = { id: cliente.id, nome: cliente.nome }; document.getElementById('cliente-search').value = cliente.nome; e.target.classList.add('hidden'); updateOrcamentoTotal(); }
+                });
+                
+                document.getElementById('show-new-client-btn')?.addEventListener('click', () => { document.getElementById('cliente-new-name')?.classList.toggle('hidden'); });
+                
+                document.getElementById('add-servico-orcamento-btn')?.addEventListener('click', () => {
+                    const servicoId = document.getElementById('servico-select-orcamento').value; if (!servicoId) return;
+                    const servico = appData.servicosPadrao.find(sp => sp.id == servicoId); if(!servico) return;
+                    const custo = calcularCustoTotalServicoPadrao(servico);
+                    orcamentoAtual.servicos.push({ tempId: Date.now(), servicoPadraoId: servico.id, nome: servico.nome, custo, preco: custo });
+                    renderOrcamentoAtual();
+                });
+                
+                document.getElementById('orcamento-itens-lista')?.addEventListener('click', (e) => {
+                    if(e.target.matches('.delete-btn')) { const tempId = parseInt(e.target.dataset.tempId); orcamentoAtual.servicos = orcamentoAtual.servicos.filter(s => s.tempId !== tempId); renderOrcamentoAtual(); }
+                });
+                
+                document.getElementById('orcamento-itens-lista')?.addEventListener('input', (e) => {
+                    if(e.target.matches('.item-preco-input')) {
+                        const tempId = parseInt(e.target.dataset.tempId); const novoPreco = parseFloat(e.target.value) || 0;
+                        const servico = orcamentoAtual.servicos.find(s => s.tempId === tempId);
+                        if(servico) servico.preco = novoPreco; updateOrcamentoTotal();
+                    }
+                });
+                
+                document.getElementById('orcamento-form')?.addEventListener('submit', async (e) => { e.preventDefault();
+                    const nomeNovoCliente = document.getElementById('cliente-new-name').value.trim();
+                    let clienteFinal = orcamentoAtual.cliente;
+
+                    if (nomeNovoCliente) {
+                        const clienteExistente = appData.clientes.find(c => c.nome.toLowerCase() === nomeNovoCliente.toLowerCase());
+                        if(clienteExistente) {
+                           clienteFinal = clienteExistente;
+                        } else {
+                           const novoCliente = { id: Date.now(), nome: nomeNovoCliente };
+                           (appData.clientes = appData.clientes || []).push(novoCliente);
+                           clienteFinal = novoCliente;
+                        }
+                    }
+
+                    if (!clienteFinal || !clienteFinal.id) { showToast('Selecione ou cadastre um cliente.', 'error'); return; }
+                    if (orcamentoAtual.servicos.length === 0) { showToast('Adicione pelo menos um serviço.', 'error'); return; }
+                    
+                    const totais = orcamentoAtual.servicos.reduce((acc, s) => { acc.custo += s.custo; acc.preco += s.preco; return acc; }, { custo: 0, preco: 0 });
+                    const servicoPrestado = { id: Date.now(), data: document.getElementById('orcamento-data').value, clienteId: clienteFinal.id, clienteNome: clienteFinal.nome, servicos: orcamentoAtual.servicos.map(({tempId, ...rest}) => rest), custoTotal: totais.custo, precoTotal: totais.preco, lucroTotal: totais.preco - totais.custo };
+                    (appData.servicosPrestados = appData.servicosPrestados || []).push(servicoPrestado);
+                    await saveData(`Serviço de R$${totais.preco.toFixed(2)} para ${clienteFinal.nome}`);
+                    
+                    orcamentoAtual = { cliente: { id: null, nome: null }, servicos: [] }; e.target.reset(); renderOrcamentoAtual(); renderAll();
+                    document.getElementById('cliente-new-name')?.classList.add('hidden'); document.getElementById('cliente-search').value = '';
+                });
+
+                document.getElementById('gerar-imagem-orcamento-btn')?.addEventListener('click', generateQuoteImage);
+                document.getElementById('close-modal-btn')?.addEventListener('click', () => { document.getElementById('image-modal')?.classList.add('hidden'); });
+                document.getElementById('share-image-btn')?.addEventListener('click', shareQuoteImage);
+            }
+
+            // ===================================================================
+            // --- 5. DATA PERSISTENCE & IMAGE GENERATION ---
+            // ===================================================================
+            async function saveData(commitMessage) {
+                showLoader(true);
+                try {
+                    const response = await api.saveFile(GITHUB_FILE_PATH, appData, commitMessage, fileSHA);
+                    fileSHA = response.content.sha;
+                    showToast('Operação salva com sucesso!');
+                } catch (error) {
+                    console.error('Erro ao salvar:', error);
+                    showToast('Falha ao salvar dados.', 'error');
+                } finally {
+                    showLoader(false);
+                }
+            }
+
+            async function generateQuoteImage() {
+                showLoader(true);
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const template = new Image();
+                template.crossOrigin = "anonymous";
+                template.src = '/despesas/Orcamento.png'; 
+                
+                template.onload = () => {
+                    canvas.width = template.width; canvas.height = template.height;
+                    ctx.drawImage(template, 0, 0);
+                    ctx.fillStyle = '#34495e';
+                    const dataAtual = new Date(document.getElementById('orcamento-data').value + 'T00:00:00').toLocaleDateString('pt-BR');
+                    
+                    let clienteNome = orcamentoAtual.cliente.nome;
+                    if(!clienteNome) clienteNome = document.getElementById('cliente-new-name').value;
+
+                    ctx.font = 'bold 32px Arial';
+                    ctx.fillText(`Data: ${dataAtual}`, 60, 300);
+                    ctx.font = 'bold 32px Arial';
+                    ctx.fillText(`Cliente: ${clienteNome}`, 60, 350);
+                    ctx.font = 'bold 36px Arial';
+                    ctx.fillText('Serviços:', 60, 420);
+                    ctx.font = '30px Arial';
+                    let yPosition = 460;
+                    orcamentoAtual.servicos.forEach(servico => {
+                        ctx.fillText(`- ${servico.nome}`, 70, yPosition);
+                        ctx.textAlign = 'right';
+                        ctx.fillText(`R$ ${servico.preco.toFixed(2)}`, canvas.width - 60, yPosition);
+                        ctx.textAlign = 'left';
+                        yPosition += 40;
+                    });
+                    
+                    const precoTotal = orcamentoAtual.servicos.reduce((acc, s) => acc + s.preco, 0);
+                    ctx.font = 'bold 42px Arial';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(`TOTAL: R$ ${precoTotal.toFixed(2)}`, canvas.width - 60, yPosition + 50);
+
+                    const finalImageURL = canvas.toDataURL('image/jpeg', 0.9);
+                    document.getElementById('orcamento-image-preview').src = finalImageURL;
+                    const downloadBtn = document.getElementById('download-image-btn');
+                    downloadBtn.href = finalImageURL;
+                    downloadBtn.download = `Orcamento_${clienteNome.replace(/ /g, '_')}.jpg`;
+                    document.getElementById('image-modal').classList.remove('hidden');
+                    showLoader(false);
+                };
+                template.onerror = () => { showToast('Erro: Não foi possível carregar a imagem de fundo.', 'error'); showLoader(false); };
+            }
+
+            async function shareQuoteImage() {
+                const imageUrl = document.getElementById('orcamento-image-preview').src;
+                try {
+                    const response = await fetch(imageUrl);
+                    const blob = await response.blob();
+                    const file = new File([blob], `Orcamento_${orcamentoAtual.cliente.nome.replace(/ /g, '_')}.jpg`, { type: 'image/jpeg' });
+                    if (navigator.share && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: `Orçamento para ${orcamentoAtual.cliente.nome}`,
+                            text: `Olá! Segue o orçamento dos serviços de higienização.`
+                        });
+                    } else { throw new Error('API de compartilhamento não suportada.'); }
+                } catch (error) {
+                    showToast('Compartilhamento não suportado neste navegador. Baixe a imagem.', 'error');
+                    console.error('Erro ao compartilhar:', error);
+                }
+            }
+
+            // ===================================================================
+            // --- 6. START THE APP ---
+            // ===================================================================
+            async function init() {
+                showLoader(true);
+                try {
+                    const { content, sha } = await api.getFile(GITHUB_FILE_PATH);
+                    if (content) {
+                        appData = { insumos: [], servicosPadrao: [], clientes: [], servicosPrestados: [], ...content };
+                    }
+                    fileSHA = sha;
+                } catch (error) {
+                    console.error("Falha ao carregar dados do GitHub.", error);
+                    showToast("Falha ao carregar dados do GitHub.", "error");
+                } finally {
+                    renderAll();
+                    setupEventListeners();
+                    showLoader(false);
+                }
+            }
+            init();
+        });
+    </script>
 </body>
 </html>
