@@ -1,161 +1,50 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle Financeiro</title>
+    <title>Controle Financeiro Pessoal</title>
     <style>
-        :root {
-            --cor-principal: #279AF1;
-            --cor-sucesso: #28a745;
-            --cor-perigo: #dc3545;
-            --cor-aviso: #ffc107;
-            --cor-fundo: #f0f4f8;
-            --cor-texto: #333;
-            --cor-texto-claro: #7f8c8d;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            background-color: var(--cor-fundo);
-            color: var(--cor-texto);
-        }
-        .header {
-            background-color: var(--cor-principal);
-            color: white;
-            padding: 15px 20px;
-            text-align: center;
-            font-size: 1.5em;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .tabs {
-            display: flex;
-            justify-content: space-around;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 60px; /* Altura do header */
-            z-index: 99;
-        }
-        .tab-button {
-            flex-grow: 1;
-            padding: 15px 10px;
-            cursor: pointer;
-            border: none;
-            background-color: transparent;
-            font-size: 0.9em;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-        .tab-button.active {
-            border-bottom: 3px solid var(--cor-principal);
-            color: var(--cor-principal);
-            font-weight: bold;
-        }
-        .tab-content {
-            display: none;
-            padding: 15px;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .card {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        .card h2 {
-            margin-top: 0;
-            font-size: 1.2em;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            color: var(--cor-principal);
-        }
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            font-size: 1.1em;
-            margin-bottom: 10px;
-        }
-        .summary-item span:first-child {
-            color: var(--cor-texto-claro);
-        }
-        .summary-item span:last-child {
-            font-weight: bold;
-        }
-        .despesa-item {
-            display: flex;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .despesa-item.pago .despesa-descricao, .despesa-item.pago .despesa-valor {
-            text-decoration: line-through;
-            color: #aaa;
-        }
-        .despesa-info {
-            flex-grow: 1;
-            margin-left: 15px;
-        }
-        .despesa-descricao {
-            font-weight: bold;
-            font-size: 1em;
-        }
-        .despesa-detalhes {
-            font-size: 0.85em;
-            color: var(--cor-texto-claro);
-        }
-        .despesa-valor {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: var(--cor-perigo);
-        }
-        .despesa-item.pago .despesa-valor {
-            color: var(--cor-sucesso);
-        }
-        .despesa-acoes {
-            display: flex;
-            gap: 5px;
-            margin-top: 10px;
-        }
-        .btn {
-            padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em;
-        }
+        :root { --cor-principal: #279AF1; --cor-sucesso: #28a745; --cor-perigo: #dc3545; --cor-aviso: #ffc107; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f4f8; color: #333; }
+        .container { padding: 20px; max-width: 800px; margin: 0 auto; }
+        .form-section { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .form-section h2 { margin-top: 0; }
+        input, select, button { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 1em; }
+        button { background-color: var(--cor-principal); color: white; border: none; cursor: pointer; }
+        button:hover { opacity: 0.9; }
+        #login-container, #app-container { display: none; } /* Começam escondidos */
+        .header { background-color: var(--cor-principal); color: white; padding: 15px 20px; text-align: center; font-size: 1.5em; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        .header-com-logout { display: flex; justify-content: space-between; align-items: center; }
+        #logout-btn { background: var(--cor-perigo); padding: 8px 12px; font-size: 0.8em; width: auto; margin-bottom: 0; }
+        .tabs { display: flex; justify-content: space-around; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+        .tab-button { flex-grow: 1; padding: 15px 10px; cursor: pointer; border: none; background-color: transparent; font-size: 0.9em; border-bottom: 3px solid transparent; transition: all 0.3s ease; text-align: center; }
+        .tab-button.active { border-bottom: 3px solid var(--cor-principal); color: var(--cor-principal); font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .card { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 20px; }
+        .card h2 { margin-top: 0; font-size: 1.2em; border-bottom: 1px solid #eee; padding-bottom: 10px; color: var(--cor-principal); }
+        .summary-item { display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px; }
+        .summary-item span:first-child { color: #7f8c8d; }
+        .summary-item span:last-child { font-weight: bold; }
+        .despesa-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
+        .despesa-item.pago .despesa-descricao, .despesa-item.pago .despesa-valor { text-decoration: line-through; color: #aaa; }
+        .despesa-info { flex-grow: 1; margin-left: 15px; }
+        .despesa-descricao { font-weight: bold; font-size: 1em; }
+        .despesa-detalhes { font-size: 0.85em; color: #7f8c8d; }
+        .despesa-valor { font-size: 1.1em; font-weight: bold; color: var(--cor-perigo); }
+        .despesa-item.pago .despesa-valor { color: var(--cor-sucesso); }
+        .despesa-acoes { display: flex; gap: 5px; margin-top: 10px; }
+        .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
         .btn-sm { padding: 5px 8px; font-size: 0.8em; }
         .btn-success { background-color: var(--cor-sucesso); color: white; }
         .btn-warning { background-color: var(--cor-aviso); color: #212529; }
         .btn-danger { background-color: var(--cor-perigo); color: white; }
-
-        .fab {
-            position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
-            background-color: var(--cor-principal); color: white; border: none; border-radius: 50%;
-            font-size: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer;
-            display: flex; justify-content: center; align-items: center; z-index: 1001;
-        }
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 2000;
-        }
-        .modal-content {
-            background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px;
-        }
+        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background-color: var(--cor-principal); color: white; border: none; border-radius: 50%; font-size: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; display: flex; justify-content: center; align-items: center; z-index: 1001; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 2000; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px; }
         .modal-content h2 { margin-top: 0; }
         .close-button { float: right; font-size: 1.5rem; cursor: pointer; }
-        #form-despesa input, #form-despesa select {
-            width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc;
-            border-radius: 5px; box-sizing: border-box; font-size: 1em;
-        }
-        #form-despesa button {
-            width: 100%; padding: 15px; background-color: var(--cor-sucesso); color: white;
-            border: none; border-radius: 5px; font-size: 1rem;
-        }
         #parcelas-container.hidden { display: none; }
         .navegacao-mes { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; text-align: center; }
         .navegacao-mes h2 { margin: 0; font-size: 1.2em; }
@@ -163,104 +52,205 @@
 </head>
 
 <body>
-    <header>
-        <h1>Controle Financeiro</h1>
-    </header>
-    <div class="tabs">
-        <button class="tab-button active" onclick="abrirTab('resumo')">Resumo</button>
-        <button class="tab-button" onclick="abrirTab('cartao')">Cartão</button>
-        <button class="tab-button" onclick="abrirTab('contas')">Contas</button>
-        <button class="tab-button" onclick="abrirTab('financiamentos')">Financiamentos</button>
+
+    <!-- TELA DE LOGIN -->
+    <div id="login-container" class="container">
+        <div class="form-section">
+            <h2>Login</h2>
+            <input type="email" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-senha" placeholder="Senha" required>
+            <button id="btn-login">Entrar</button>
+            <p>Não tem uma conta? <a href="#" id="link-cadastro">Cadastre-se</a></p>
+        </div>
+
+        <div class="form-section" id="cadastro-section" style="display:none;">
+            <h2>Cadastro</h2>
+            <input type="email" id="cadastro-email" placeholder="Email" required>
+            <input type="password" id="cadastro-senha" placeholder="Senha (mínimo 6 caracteres)" required>
+            <button id="btn-cadastrar">Cadastrar</button>
+            <p>Já tem uma conta? <a href="#" id="link-login">Faça Login</a></p>
+        </div>
     </div>
 
-    <main>
-        <div id="resumo" class="tab-content active">
-            <div class="card">
-                <div class="navegacao-mes">
-                    <button class="btn btn-sm" onclick="mudarMes(-1)">&lt; Anterior</button>
-                    <h2 id="mes-ano-atual"></h2>
-                    <button class="btn btn-sm" onclick="mudarMes(1)">Próximo &gt;</button>
-                </div>
-                <div class="summary-item">
-                    <span>Pago no Mês:</span>
-                    <span id="total-pago-mes" style="color: var(--cor-sucesso);">R$ 0,00</span>
-                </div>
-                <div class="summary-item">
-                    <span>A Pagar no Mês:</span>
-                    <span id="total-a-pagar-mes" style="color: var(--cor-perigo);">R$ 0,00</span>
-                </div>
-            </div>
-            <div class="card">
-                <h2>Lançamentos do Mês</h2>
-                <div id="lista-despesas-resumo"></div>
-            </div>
+    <!-- APLICAÇÃO PRINCIPAL (INVISÍVEL ATÉ O LOGIN) -->
+    <div id="app-container">
+        <div class="header header-com-logout">
+            <h1>Controle Financeiro</h1>
+            <button id="logout-btn">Sair</button>
+        </div>
+        <div class="tabs">
+            <button class="tab-button active" onclick="abrirTab('resumo')">Resumo</button>
+            <button class="tab-button" onclick="abrirTab('cartao')">Cartão</button>
+            <button class="tab-button" onclick="abrirTab('contas')">Contas</button>
+            <button class="tab-button" onclick="abrirTab('financiamentos')">Financiamentos</button>
         </div>
 
-        <div id="cartao" class="tab-content">
-            <div class="card">
-                <h2>Despesas do Cartão de Crédito</h2>
-                <div id="lista-despesas-cartao"></div>
-            </div>
-        </div>
-        <div id="contas" class="tab-content">
-            <div class="card">
-                <h2>Contas (Água, Luz, etc.)</h2>
-                <div id="lista-despesas-contas"></div>
-            </div>
-        </div>
-        <div id="financiamentos" class="tab-content">
-            <div class="card">
-                <h2>Financiamentos</h2>
-                <div id="lista-despesas-financiamentos"></div>
-            </div>
-        </div>
-    </main>
-
-    <button id="add-despesa-btn" class="fab">+</button>
-    
-    <div id="modal-despesa" class="modal-overlay">
-        <div class="modal-content">
-            <span class="close-button" onclick="fecharModal()">&times;</span>
-            <h2 id="modal-titulo">Nova Despesa</h2>
-            <form id="form-despesa">
-                <input type="hidden" id="despesa-id">
-                <input type="text" id="descricao" placeholder="Descrição" required>
-                <input type="number" id="valor" placeholder="Valor Total (R$)" step="0.01" required>
-                <input type="date" id="data-vencimento" required>
-                <select id="tipo-despesa" required>
-                    <option value="Cartão de Crédito">Cartão de Crédito</option>
-                    <option value="Conta">Conta</option>
-                    <option value="Financiamento">Financiamento</option>
-                    <option value="Outra">Outra</option>
-                </select>
-                <div id="parcelas-section">
-                    <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                        <input type="checkbox" id="parcelado"> É uma compra parcelada?
-                    </label>
-                    <div id="parcelas-container" class="hidden">
-                        <input type="number" id="num-parcelas" placeholder="Nº de Parcelas" min="2">
+        <main class="container">
+            <div id="resumo" class="tab-content active">
+                <div class="card">
+                    <div class="navegacao-mes">
+                        <button class="btn btn-sm" onclick="mudarMes(-1)">&lt; Anterior</button>
+                        <h2 id="mes-ano-atual"></h2>
+                        <button class="btn btn-sm" onclick="mudarMes(1)">Próximo &gt;</button>
+                    </div>
+                    <div class="summary-item">
+                        <span>Pago no Mês:</span>
+                        <span id="total-pago-mes" style="color: var(--cor-sucesso);">R$ 0,00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>A Pagar no Mês:</span>
+                        <span id="total-a-pagar-mes" style="color: var(--cor-perigo);">R$ 0,00</span>
                     </div>
                 </div>
-                <button type="submit" id="btn-salvar-despesa">Adicionar Despesa</button>
-            </form>
+                <div class="card">
+                    <h2>Lançamentos do Mês</h2>
+                    <div id="lista-despesas-resumo"></div>
+                </div>
+            </div>
+
+            <div id="cartao" class="tab-content">
+                <div class="card">
+                    <h2>Despesas do Cartão de Crédito</h2>
+                    <div id="lista-despesas-cartao"></div>
+                </div>
+            </div>
+            <div id="contas" class="tab-content">
+                <div class="card">
+                    <h2>Contas (Água, Luz, etc.)</h2>
+                    <div id="lista-despesas-contas"></div>
+                </div>
+            </div>
+            <div id="financiamentos" class="tab-content">
+                <div class="card">
+                    <h2>Financiamentos</h2>
+                    <div id="lista-despesas-financiamentos"></div>
+                </div>
+            </div>
+        </main>
+
+        <button id="add-despesa-btn" class="fab">+</button>
+        
+        <div id="modal-despesa" class="modal-overlay">
+            <div class="modal-content">
+                <span class="close-button" onclick="fecharModal()">&times;</span>
+                <h2 id="modal-titulo">Nova Despesa</h2>
+                <form id="form-despesa">
+                    <input type="hidden" id="despesa-id">
+                    <input type="text" id="descricao" placeholder="Descrição" required>
+                    <input type="number" id="valor" placeholder="Valor Total (R$)" step="0.01" required>
+                    <input type="date" id="data-vencimento" required>
+                    <select id="tipo-despesa" required>
+                        <option value="Cartão de Crédito">Cartão de Crédito</option>
+                        <option value="Conta">Conta</option>
+                        <option value="Financiamento">Financiamento</option>
+                        <option value="Outra">Outra</option>
+                    </select>
+                    <div id="parcelas-section">
+                        <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <input type="checkbox" id="parcelado" style="width: auto;"> É uma compra parcelada?
+                        </label>
+                        <div id="parcelas-container" class="hidden">
+                            <input type="number" id="num-parcelas" placeholder="Nº de Parcelas" min="2">
+                        </div>
+                    </div>
+                    <button type="submit" id="btn-salvar-despesa">Adicionar Despesa</button>
+                </form>
+            </div>
         </div>
     </div>
 
+    <!-- SCRIPTS DO FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <script>
-        let db = {};
+        // --- INICIALIZAÇÃO DO FIREBASE COM SUAS CHAVES ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDcvNfaFIzyuds1rytkbiz0FFTtkShHwrE",
+            authDomain: "clean-master-156d7.firebaseapp.com",
+            projectId: "clean-master-156d7",
+            storageBucket: "clean-master-156d7.appspot.com",
+            messagingSenderId: "954451890910",
+            appId: "1:954451890910:web:60baa7ffa3c5a9a7e8284f"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const firestore = firebase.firestore();
+        
+        let db = { despesas: [] };
+        let unsubscribe;
         let mesAtual = new Date();
 
-        document.addEventListener('DOMContentLoaded', () => {
-            try {
-                const dadosLocais = localStorage.getItem('controleFinanceiroDB');
-                db = dadosLocais ? JSON.parse(dadosLocais) : { despesas: [] };
-            } catch (error) {
-                console.error("Erro ao carregar dados.", error);
-                db = { despesas: [] };
+        // --- CONTROLE DE AUTENTICAÇÃO E TELAS ---
+        const loginContainer = document.getElementById('login-container');
+        const appContainer = document.getElementById('app-container');
+        const cadastroSection = document.getElementById('cadastro-section');
+        
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loginContainer.style.display = 'none';
+                appContainer.style.display = 'block';
+                carregarDadosDoUsuario(user.uid);
+            } else {
+                if (unsubscribe) unsubscribe();
+                appContainer.style.display = 'none';
+                loginContainer.style.display = 'block';
             }
-            iniciarApp();
         });
 
+        document.getElementById('link-cadastro').addEventListener('click', (e) => { e.preventDefault(); cadastroSection.style.display = 'block'; });
+        document.getElementById('link-login').addEventListener('click', (e) => { e.preventDefault(); cadastroSection.style.display = 'none'; });
+
+        // --- FUNÇÕES DE LOGIN/CADASTRO/LOGOUT ---
+        document.getElementById('btn-login').addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            const senha = document.getElementById('login-senha').value;
+            auth.signInWithEmailAndPassword(email, senha).catch(error => alert("Erro ao fazer login: " + error.message));
+        });
+
+        document.getElementById('btn-cadastrar').addEventListener('click', () => {
+            const email = document.getElementById('cadastro-email').value;
+            const senha = document.getElementById('cadastro-senha').value;
+            auth.createUserWithEmailAndPassword(email, senha)
+                .then(userCredential => iniciarBancoDeDadosParaUsuario(userCredential.user.uid))
+                .catch(error => alert("Erro ao cadastrar: " + error.message));
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+
+        // --- FUNÇÕES DE DADOS COM FIREBASE ---
+        function iniciarBancoDeDadosParaUsuario(userId) {
+            const dadosIniciais = { despesas: [] };
+            firestore.collection('usuarios').doc(userId).set(dadosIniciais)
+                .catch(error => console.error("Erro ao criar documento inicial: ", error));
+        }
+
+        function carregarDadosDoUsuario(userId) {
+            unsubscribe = firestore.collection('usuarios').doc(userId)
+                .onSnapshot((doc) => {
+                    if (doc.exists) {
+                        db = doc.data();
+                        iniciarApp();
+                    } else {
+                        iniciarBancoDeDadosParaUsuario(userId);
+                    }
+                }, (error) => {
+                    console.error("Erro ao carregar dados: ", error);
+                    alert("Erro de conexão com o banco de dados.");
+                });
+        }
+        
+        function salvarDB() {
+            const user = auth.currentUser;
+            if (user) {
+                firestore.collection('usuarios').doc(user.uid).set(db)
+                    .catch(error => console.error("Erro ao salvar dados: ", error));
+            }
+        }
+        
+        // --- LÓGICA PRINCIPAL DO APP ---
         function iniciarApp() {
             if (!db.despesas) db.despesas = [];
             abrirTab('resumo');
@@ -269,10 +259,6 @@
             document.getElementById('parcelado').addEventListener('change', (e) => {
                 document.getElementById('parcelas-container').classList.toggle('hidden', !e.target.checked);
             });
-        }
-
-        function salvarDB() {
-            localStorage.setItem('controleFinanceiroDB', JSON.stringify(db));
         }
 
         function abrirTab(nomeTab) {
@@ -297,6 +283,7 @@
             const btnSalvar = document.getElementById('btn-salvar-despesa');
             const parcelasSection = document.getElementById('parcelas-section');
             form.reset();
+            document.getElementById('parcelas-container').classList.add('hidden');
 
             if (despesaId) {
                 const despesa = db.despesas.find(d => d.id === despesaId);
@@ -307,7 +294,7 @@
                 document.getElementById('valor').value = despesa.valor;
                 document.getElementById('data-vencimento').value = despesa.dataVencimento;
                 document.getElementById('tipo-despesa').value = despesa.tipo;
-                parcelasSection.style.display = 'none'; // Não permite editar parcelamento
+                parcelasSection.style.display = 'none';
             } else {
                 titulo.textContent = "Nova Despesa";
                 btnSalvar.textContent = "Adicionar Despesa";
@@ -331,25 +318,21 @@
             const isParcelado = document.getElementById('parcelado').checked;
             const numParcelas = parseInt(document.getElementById('num-parcelas').value);
 
-            if (id) { // Editando
+            if (id) {
                 const index = db.despesas.findIndex(d => d.id === id);
                 if (index > -1) {
-                    db.despesas[index] = { ...db.despesas[index], descricao, valor, dataVencimento, tipo };
+                    db.despesas[index] = { ...db.despesas[index], descricao: descricao, valor, dataVencimento, tipo };
                 }
-            } else { // Criando
+            } else {
                 if (isParcelado && numParcelas >= 2) {
                     const valorParcela = valor / numParcelas;
                     let dataParcela = new Date(dataVencimento + 'T12:00:00');
                     for (let i = 1; i <= numParcelas; i++) {
                         db.despesas.push({
-                            id: 'desp_' + Date.now() + i,
-                            descricao: `${descricao} (${i}/${numParcelas})`,
-                            descricaoOriginal: descricao,
-                            valor: valorParcela,
+                            id: 'desp_' + Date.now() + i, descricao: `${descricao} (${i}/${numParcelas})`,
+                            descricaoOriginal: descricao, valor: valorParcela,
                             dataVencimento: dataParcela.toISOString().split('T')[0],
-                            tipo,
-                            status: 'a pagar',
-                            parcelaInfo: { atual: i, total: numParcelas }
+                            tipo, status: 'a pagar', parcelaInfo: { atual: i, total: numParcelas }
                         });
                         dataParcela.setMonth(dataParcela.getMonth() + 1);
                     }
@@ -358,7 +341,6 @@
                 }
             }
             salvarDB();
-            renderizarTodasAbas();
             fecharModal();
         }
 
@@ -372,18 +354,14 @@
             const ano = mesAtual.getFullYear();
             const mes = mesAtual.getMonth();
             document.getElementById('mes-ano-atual').textContent = mesAtual.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
-
             const despesasDoMes = db.despesas.filter(d => {
                 const data = new Date(d.dataVencimento + 'T12:00:00');
                 return data.getFullYear() === ano && data.getMonth() === mes;
             });
-
             const totalPago = despesasDoMes.filter(d => d.status === 'paga').reduce((acc, d) => acc + d.valor, 0);
             const totalAPagar = despesasDoMes.filter(d => d.status === 'a pagar').reduce((acc, d) => acc + d.valor, 0);
-
             document.getElementById('total-pago-mes').textContent = `R$ ${totalPago.toFixed(2)}`;
             document.getElementById('total-a-pagar-mes').textContent = `R$ ${totalAPagar.toFixed(2)}`;
-            
             const listaContainer = document.getElementById('lista-despesas-resumo');
             despesasDoMes.sort((a,b) => new Date(a.dataVencimento) - new Date(b.dataVencimento));
             listaContainer.innerHTML = despesasDoMes.length > 0 ? despesasDoMes.map(criarItemDespesaHTML).join('') : '<p>Nenhuma despesa para este mês.</p>';
@@ -397,7 +375,7 @@
                         <p class="despesa-descricao">${despesa.descricao}</p>
                         <p class="despesa-detalhes">${despesa.tipo} - Venc: ${dataFormatada}</p>
                         <div class="despesa-acoes">
-                            ${despesa.status === 'a pagar' ? `<button class="btn btn-sm btn-success" onclick="toggleStatusPagamento('${despesa.id}')">Marcar como Paga</button>` : `<button class="btn btn-sm btn-warning" onclick="toggleStatusPagamento('${despesa.id}')">Marcar como Não Paga</button>`}
+                            ${despesa.status === 'a pagar' ? `<button class="btn btn-sm btn-success" onclick="toggleStatusPagamento('${despesa.id}')">Pagar</button>` : `<button class="btn btn-sm btn-warning" onclick="toggleStatusPagamento('${despesa.id}')">Estornar</button>`}
                             <button class="btn btn-sm" onclick="abrirModal('${despesa.id}')">Editar</button>
                             <button class="btn btn-sm btn-danger" onclick="excluirDespesa('${despesa.id}')">Excluir</button>
                         </div>
@@ -412,7 +390,6 @@
             if (index > -1) {
                 db.despesas[index].status = db.despesas[index].status === 'paga' ? 'a pagar' : 'paga';
                 salvarDB();
-                renderizarTodasAbas();
             }
         }
         
@@ -420,7 +397,6 @@
             if (confirm("Tem certeza que deseja excluir esta despesa?")) {
                 db.despesas = db.despesas.filter(d => d.id !== despesaId);
                 salvarDB();
-                renderizarTodasAbas();
             }
         }
         
@@ -428,7 +404,6 @@
             mesAtual.setMonth(mesAtual.getMonth() + offset, 1);
             renderizarAbaResumo();
         }
-
     </script>
 </body>
 </html>
