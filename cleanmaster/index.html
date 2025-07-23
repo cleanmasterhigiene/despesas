@@ -167,54 +167,46 @@
     </div>
 
     <script>
-        // Bloco principal da aplicação
         let db = {};
         let servicosAdicionados = [];
         let clienteSelecionadoOrcamento = null;
-        const GITHUB_URL = 'https://raw.githubusercontent.com/cleanmasterhigiene/despesas/main/data/cleanmaster.json?cache_bust=' + Date.now();
 
-        document.addEventListener('DOMContentLoaded', carregarDadosIniciais);
+        const dadosIniciaisPadrao = {
+            "clientes": [
+                { "id": "cliente_1", "nome": "Alex Lopes de oliveira", "telefone": "", "endereco": "" }
+            ],
+            "servicos": [
+                { "id": "servico_1", "clienteId": "cliente_1", "itens": "teste sofa 2, teste sofa 123", "data": "2025-07-23", "custoTotal": 110, "precoTotal": 180, "status": "A Receber", "metodoPagamento": null, "valorRecebido": null }
+            ],
+            "precos": [
+                { "id": "preco_1", "nome": "teste do preço", "custo": 40, "preco": 200 },
+                { "id": "preco_2", "nome": "teste sofa 2", "custo": 50, "preco": 90 },
+                { "id": "preco_3", "nome": "teste sofa 123", "custo": 60, "preco": 90 }
+            ],
+            "insumos": [],
+            "configuracoes": {
+                "metodosPagamento": ["Dinheiro", "Pix", "Cartão de Crédito", "Cartão de Débito"]
+            }
+        };
 
-        async function carregarDadosIniciais() {
+        document.addEventListener('DOMContentLoaded', () => {
             try {
                 const dadosLocais = localStorage.getItem('cleanMasterDB');
-                let dadosCarregados;
-
                 if (dadosLocais) {
-                    dadosCarregados = JSON.parse(dadosLocais);
+                    db = JSON.parse(dadosLocais);
                     console.log("Dados carregados do localStorage.");
                 } else {
-                    const response = await fetch(GITHUB_URL);
-                    if (!response.ok) {
-                        throw new Error(`Erro de rede ao buscar JSON: ${response.statusText}`);
-                    }
-                    dadosCarregados = await response.json();
-                    console.log("Dados carregados do GitHub.");
+                    // Se não houver dados locais, usa os dados padrão embutidos
+                    db = dadosIniciaisPadrao;
+                    console.log("Usando dados iniciais padrão.");
+                    salvarDB();
                 }
-                
-                // A função de migração foi removida, pois agora o JSON já está no formato correto
-                db = validarDados(dadosCarregados);
-                salvarDB(); // Garante que a versão validada está no localStorage
-                iniciarApp();
-
             } catch (error) {
-                console.error("ERRO FATAL AO CARREGAR DADOS:", error);
-                alert("Não foi possível carregar os dados. A aplicação iniciará com valores padrão.");
-                db = { clientes: [], servicos: [], precos: [], insumos: [], configuracoes: { metodosPagamento: ['Dinheiro', 'Pix'] } };
-                iniciarApp();
+                console.error("Erro ao carregar dados, usando padrão.", error);
+                db = dadosIniciaisPadrao;
             }
-        }
-
-        function validarDados(dados) {
-            // Garante que a estrutura mínima exista para evitar erros
-            if (!dados) dados = {};
-            if (!dados.clientes) dados.clientes = [];
-            if (!dados.servicos) dados.servicos = [];
-            if (!dados.precos) dados.precos = [];
-            if (!dados.insumos) dados.insumos = [];
-            if (!dados.configuracoes) dados.configuracoes = { metodosPagamento: ['Dinheiro', 'Pix', 'Cartão'] };
-            return dados;
-        }
+            iniciarApp();
+        });
         
         function iniciarApp() {
             abrirTab('orcamento');
@@ -395,4 +387,106 @@
             salvarDB();
             renderizarAbaInsumos();
             document.getElementById('insumo-nome').value = '';
-            document.
+            document.getElementById('insumo-custo').value = '';
+        }
+        function excluirInsumo(id) {
+            if(confirm("Excluir este insumo?")) {
+                db.insumos = db.insumos.filter(i => i.id != id);
+                salvarDB();
+                renderizarAbaInsumos();
+            }
+        }
+        
+        // --- ABA RECEBIMENTOS ---
+        function renderizarAbaRecebimentos() {
+            const container = document.getElementById('resumo-recebimentos');
+            const servicosFinalizados = (db.servicos || []).filter(s => s.status === 'Finalizado');
+            if(servicosFinalizados.length === 0) { container.innerHTML = "<p>Nenhum recebimento registrado.</p>"; return; }
+            const totalRecebido = servicosFinalizados.reduce((acc, s) => acc + (s.valorRecebido || 0), 0);
+            const custoTotal = servicosFinalizados.reduce((acc, s) => acc + (s.custoTotal || 0), 0);
+            const lucroTotal = totalRecebido - custoTotal;
+            const porMetodo = servicosFinalizados.reduce((acc, s) => {
+                const metodo = s.metodoPagamento || 'Não especificado';
+                acc[metodo] = (acc[metodo] || 0) + (s.valorRecebido || 0);
+                return acc;
+            }, {});
+            let resumoMetodoHtml = '<h3>Recebimentos por Método</h3>';
+            for (const metodo in porMetodo) {
+                resumoMetodoHtml += `<p>${metodo}: <strong>R$ ${porMetodo[metodo].toFixed(2)}</strong></p>`;
+            }
+            container.innerHTML = `<div class="resumo-financeiro"><p>Total Recebido: <span>R$ ${totalRecebido.toFixed(2)}</span></p><p>Custo Total: <span>R$ ${custoTotal.toFixed(2)}</span></p><p style="color: #28a745;">Lucro Total: <span>R$ ${lucroTotal.toFixed(2)}</span></p></div><hr>${resumoMetodoHtml}`;
+        }
+
+        // --- MODAIS E FUNÇÕES AUXILIARES ---
+        function abrirModalSelecaoCliente() {
+            abrirModal('modal-selecionar-cliente');
+            renderizarListaModalClientes('');
+        }
+        function renderizarListaModalClientes(filtro) {
+            const lista = document.getElementById('lista-modal-clientes');
+            lista.innerHTML = '';
+            (db.clientes || []).filter(c => c.nome.toLowerCase().includes(filtro.toLowerCase())).forEach(cliente => {
+                lista.innerHTML += `<div class="item-lista" style="cursor: pointer;" onclick="selecionarClienteParaOrcamento('${cliente.id}')">${cliente.nome}</div>`;
+            });
+        }
+        function selecionarClienteParaOrcamento(clienteId) {
+            clienteSelecionadoOrcamento = db.clientes.find(c => c.id === clienteId);
+            const aviso = document.getElementById('cliente-orcamento-aviso');
+            document.getElementById('cliente-selecionado-texto').textContent = clienteSelecionadoOrcamento.nome;
+            aviso.classList.add('selecionado');
+            fecharModal('modal-selecionar-cliente');
+        }
+        function abrirModalFinalizar(servicoId, total) {
+            document.getElementById('servico-id-modal').value = servicoId;
+            document.getElementById('total-pedido-modal').textContent = `R$ ${total.toFixed(2)}`;
+            const select = document.getElementById('metodo-pagamento-modal');
+            select.innerHTML = '';
+            (db.configuracoes.metodosPagamento || []).forEach(metodo => {
+                select.innerHTML += `<option value="${metodo}">${metodo}</option>`;
+            });
+            document.getElementById('valor-recebido-modal').value = total.toFixed(2);
+            abrirModal('modal-finalizar-pedido');
+        }
+        function confirmarFinalizacao() {
+            const servicoId = document.getElementById('servico-id-modal').value;
+            const metodo = document.getElementById('metodo-pagamento-modal').value;
+            const valor = parseFloat(document.getElementById('valor-recebido-modal').value);
+            if (isNaN(valor)) { alert('Insira um valor recebido válido.'); return; }
+            const index = db.servicos.findIndex(s => s.id === servicoId);
+            if (index !== -1) {
+                db.servicos[index].status = 'Finalizado';
+                db.servicos[index].metodoPagamento = metodo;
+                db.servicos[index].valorRecebido = valor;
+                salvarDB();
+                fecharModal('modal-finalizar-pedido');
+                renderizarAbaClientes();
+                renderizarAbaRecebimentos();
+            }
+        }
+        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        // --- BOTÕES DE COMPARTILHAR E BAIXAR ---
+        function baixarImagemOrcamento() {
+            const node = document.getElementById('orcamento-para-imagem');
+            html2canvas(node, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `orcamento-${clienteSelecionadoOrcamento?.nome.replace(/ /g, '_') || 'sem-cliente'}-${new Date().toLocaleDateString()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+        async function compartilharOrcamento() {
+            const precoTotal = servicosAdicionados.reduce((acc, s) => acc + s.preco, 0);
+            const textoCompartilhar = `Olá, ${clienteSelecionadoOrcamento?.nome || 'cliente'}! Segue o seu orçamento: Total: R$ ${precoTotal.toFixed(2)}. Atenciosamente, Clean Master`;
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: 'Orçamento Clean Master', text: textoCompartilhar });
+                } catch (err) { console.error("Erro ao compartilhar:", err); }
+            } else {
+                navigator.clipboard.writeText(textoCompartilhar).then(() => alert("Orçamento copiado para a área de transferência!"));
+            }
+        }
+    </script>
+</body>
+</html>
