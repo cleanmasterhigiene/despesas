@@ -7,6 +7,14 @@
       "quantidadeTotal": 10,
       "unidadeMedida": "L",
       "custoPorUnidade": 10
+    },
+    {
+      "id": 1753269862812,
+      "nome": "teste insumo 2",
+      "precoTotal": 10,
+      "quantidadeTotal": 1,
+      "unidadeMedida": "L",
+      "custoPorUnidade": 10
     }
   ],
   "servicosPadrao": [
