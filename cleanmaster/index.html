@@ -16,7 +16,7 @@
         h4 { font-size: 1rem; color: #34495e; border-bottom: 1px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 15px; }
         .divider { height: 1px; background-color: #ecf0f1; margin: 20px 0; }
         label { font-weight: 500; font-size: 0.9rem; color: #34495e; margin-bottom: 5px; display: block; }
-        .hidden { display: none; }
+        .hidden { display: none; } /* <-- REGRA CRÍTICA QUE ESTAVA FALTANDO */
         .empty-state { text-align: center; color: #95a5a6; padding: 20px; background-color: #f9f9f9; border-radius: 8px; }
 
         /* Abas */
@@ -31,7 +31,7 @@
         form { display: flex; flex-direction: column; gap: 15px; }
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1rem; font-family: 'Roboto', sans-serif; }
         textarea { resize: vertical; }
-        .inline-fields { display: flex; gap: 10px; }
+        .inline-fields { display: flex; gap: 10px; align-items: center; }
         button { padding: 15px; background-color: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
         button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
         button.submit-btn { background-color: #27ae60; }
@@ -48,12 +48,12 @@
         .servico-padrao-item:last-child { border-bottom: none; }
         .item-info .nome { font-weight: 500; color: #2c3e50; }
         .item-info .custo, .item-info .tempo { color: #7f8c8d; font-size: 0.85rem; }
-        .insumo-item { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
-        .insumo-item .nome { font-weight: 500; grid-column: 1 / 4; }
-        .insumo-item .editable-fields { display: flex; align-items: center; gap: 5px; grid-column: 1 / 3; }
+        .insumo-item { display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; align-items: center; padding: 10px; border-bottom: 1px solid #ecf0f1; }
+        .insumo-item .nome { font-weight: 500; grid-column: 1 / -1; }
+        .insumo-item .editable-fields { display: flex; align-items: center; gap: 5px; }
         .insumo-item .editable-fields input { width: 80px; text-align: center; padding: 8px; }
-        .insumo-item .insumo-custo-calculado { grid-column: 1 / 3; font-size: 0.85rem; color: #7f8c8d; justify-self: start; }
-        .insumo-item .delete-btn { justify-self: end; grid-column: 3 / 4; grid-row: 2 / 4; }
+        .insumo-item .insumo-custo-calculado { font-size: 0.85rem; color: #7f8c8d; justify-self: start; }
+        .insumo-item .delete-btn { justify-self: end; grid-row: 2 / 4; }
 
         /* Orçamento e Lançamento */
         .orcamento-itens-container { border: 1px solid #eee; border-radius: 8px; margin-top: 15px; padding: 10px; min-height: 50px; }
@@ -272,7 +272,7 @@
                 let custo = (servicoPadrao.custoMaoDeObra || 0) + (servicoPadrao.custoImposto || 0);
                 (servicoPadrao.insumosVinculados || []).forEach(itemVinculado => {
                     const insumo = (appData.insumos || []).find(i => i.id == itemVinculado.insumoId);
-                    if (insumo) custo += insumo.custoPorUnidade * itemVinculado.quantidade;
+                    if (insumo) custo += (insumo.custoPorUnidade || 0) * (itemVinculado.quantidade || 0);
                 });
                 return custo;
             }
@@ -364,11 +364,9 @@
                 if(!lista) return;
                 lista.innerHTML = '';
                 const filtered = (appData.clientes || []).filter(c => c.nome.toLowerCase().includes(filter.toLowerCase()));
-                if (filtered.length === 0 && filter === '') {
-                    lista.innerHTML = '<p class="empty-state">Nenhum cliente cadastrado.</p>'; return;
-                }
-                if (filtered.length === 0 && filter !== '') {
-                    lista.innerHTML = '<p class="empty-state">Nenhum cliente encontrado.</p>'; return;
+                if (filtered.length === 0) {
+                     lista.innerHTML = (filter === '') ? '<p class="empty-state">Nenhum cliente cadastrado.</p>' : '<p class="empty-state">Nenhum cliente encontrado.</p>';
+                    return;
                 }
                 filtered.forEach(cliente => {
                     const item = document.createElement('div');
@@ -424,8 +422,10 @@
                         document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = "none");
                         document.querySelectorAll('.tab-link').forEach(tl => tl.classList.remove("active"));
                         const tabContent = document.getElementById(tabName);
-                        if (tabContent) tabContent.style.display = "block";
-                        e.target.classList.add("active");
+                        if (tabContent) {
+                            tabContent.style.display = "block";
+                            e.target.classList.add("active");
+                        }
                     }
                 });
 
@@ -434,7 +434,7 @@
                     const novoInsumo = { id: Date.now(), nome: form.elements['insumo-nome'].value, precoTotal: parseFloat(form.elements['insumo-preco-total'].value), quantidadeTotal: parseFloat(form.elements['insumo-qtd-total'].value), unidadeMedida: form.elements['insumo-unidade'].value };
                     if (!novoInsumo.nome || !novoInsumo.precoTotal || !novoInsumo.quantidadeTotal) { showToast('Preencha todos os campos do insumo.', 'error'); return; }
                     novoInsumo.custoPorUnidade = novoInsumo.precoTotal / novoInsumo.quantidadeTotal;
-                    appData.insumos.push(novoInsumo);
+                    (appData.insumos = appData.insumos || []).push(novoInsumo);
                     await saveData(`Cadastrado insumo: ${novoInsumo.nome}`);
                     form.reset(); renderInsumosList(); populateInsumoSelects();
                 });
@@ -473,7 +473,7 @@
                     const form = e.target; const nome = form.elements['sp-nome'].value;
                     if (!nome) { showToast('O nome do serviço é obrigatório.', 'error'); return; }
                     const novoServico = { id: Date.now(), nome, custoMaoDeObra: parseFloat(form.elements['sp-mao-de-obra'].value) || 0, custoImposto: parseFloat(form.elements['sp-imposto'].value) || 0, tempoEstimado: parseInt(form.elements['sp-tempo'].value) || 0, insumosVinculados: insumosVinculadosCache };
-                    appData.servicosPadrao.push(novoServico);
+                    (appData.servicosPadrao = appData.servicosPadrao || []).push(novoServico);
                     await saveData(`Criado modelo de serviço: ${novoServico.nome}`);
                     form.reset(); insumosVinculadosCache = []; renderInsumosVinculados(); renderServicosPadraoList(); populateServicoPadraoSelect();
                 });
@@ -547,7 +547,7 @@
                     let clienteFinal = orcamentoAtual.cliente;
 
                     if (nomeNovoCliente) {
-                        const clienteExistente = appData.clientes.find(c => c.nome.toLowerCase() === nomeNovoCliente.toLowerCase());
+                        const clienteExistente = (appData.clientes || []).find(c => c.nome.toLowerCase() === nomeNovoCliente.toLowerCase());
                         if(clienteExistente) {
                            clienteFinal = clienteExistente;
                         } else {
@@ -592,6 +592,13 @@
             }
 
             async function generateQuoteImage() {
+                let clienteNome = orcamentoAtual.cliente?.nome;
+                if(!clienteNome) clienteNome = document.getElementById('cliente-new-name')?.value.trim();
+                if (!clienteNome || orcamentoAtual.servicos.length === 0) {
+                    showToast('Selecione um cliente e adicione serviços para gerar o orçamento.', 'error');
+                    return;
+                }
+
                 showLoader(true);
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
@@ -603,11 +610,9 @@
                     canvas.width = template.width; canvas.height = template.height;
                     ctx.drawImage(template, 0, 0);
                     ctx.fillStyle = '#34495e';
-                    const dataAtual = new Date(document.getElementById('orcamento-data').value + 'T00:00:00').toLocaleDateString('pt-BR');
+                    const dataInput = document.getElementById('orcamento-data').value;
+                    const dataAtual = dataInput ? new Date(dataInput+'T00:00:00').toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR');
                     
-                    let clienteNome = orcamentoAtual.cliente.nome;
-                    if(!clienteNome) clienteNome = document.getElementById('cliente-new-name').value;
-
                     ctx.font = 'bold 32px Arial';
                     ctx.fillText(`Data: ${dataAtual}`, 60, 300);
                     ctx.font = 'bold 32px Arial';
@@ -642,14 +647,15 @@
 
             async function shareQuoteImage() {
                 const imageUrl = document.getElementById('orcamento-image-preview').src;
+                let clienteNome = orcamentoAtual.cliente?.nome || document.getElementById('cliente-new-name')?.value.trim();
                 try {
                     const response = await fetch(imageUrl);
                     const blob = await response.blob();
-                    const file = new File([blob], `Orcamento_${orcamentoAtual.cliente.nome.replace(/ /g, '_')}.jpg`, { type: 'image/jpeg' });
+                    const file = new File([blob], `Orcamento_${clienteNome.replace(/ /g, '_')}.jpg`, { type: 'image/jpeg' });
                     if (navigator.share && navigator.canShare({ files: [file] })) {
                         await navigator.share({
                             files: [file],
-                            title: `Orçamento para ${orcamentoAtual.cliente.nome}`,
+                            title: `Orçamento para ${clienteNome}`,
                             text: `Olá! Segue o orçamento dos serviços de higienização.`
                         });
                     } else { throw new Error('API de compartilhamento não suportada.'); }
