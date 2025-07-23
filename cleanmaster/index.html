@@ -58,10 +58,51 @@
     </div>
 
     <div id="orcamento" class="tab-content active">
+        <div id="orcamento-para-imagem">
+            <div class="form-section">
+                <h2>1. Cliente</h2>
+                <div id="cliente-orcamento-aviso" class="cliente-orcamento-aviso">
+                    <span id="cliente-selecionado-texto">Selecione ou cadastre um cliente</span>
+                    <button class="btn btn-primary" onclick="abrirModalSelecaoCliente()">Selecionar</button>
+                </div>
+            </div>
+            <div class="form-section">
+                <h2>2. Serviços</h2>
+                <select id="servico-select"></select>
+                <button class="btn btn-primary" onclick="adicionarServicoOrcamento()">Adicionar</button>
+                <div id="lista-servicos-adicionados"></div>
+            </div>
+            <div class="form-section">
+                <h2>3. Resumo Financeiro</h2>
+                <div class="resumo-financeiro">
+                    <p>Custo Total: <span id="custo-total">R$ 0.00</span></p>
+                    <p>Preço Total: <span id="preco-total">R$ 0.00</span></p>
+                    <p style="color: #28a745;">Lucro Total: <span id="lucro-total">R$ 0.00</span></p>
+                </div>
+            </div>
         </div>
+        <input type="date" id="data-servico" style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; gap: 10px;">
+            <button class="btn btn-primary" style="flex: 1;" onclick="baixarImagemOrcamento()">Baixar Imagem</button>
+            <button class="btn btn-success" style="flex: 1;" onclick="compartilharOrcamento()">Compartilhar</button>
+        </div>
+        <button class="btn btn-success" onclick="salvarServico()" style="width: 100%; margin-top: 10px;">Salvar Serviço</button>
+    </div>
 
     <div id="clientes" class="tab-content">
+        <div class="form-section">
+            <h2>Meus Clientes</h2>
+            <input type="text" id="filtro-clientes" placeholder="Filtrar clientes..." onkeyup="renderizarAbaClientes()">
+            <div id="lista-clientes"></div>
         </div>
+        <div class="form-section">
+            <h2>Novo Cliente</h2>
+            <input type="text" id="nome-cliente" placeholder="Nome do cliente">
+            <input type="text" id="telefone-cliente" placeholder="Telefone (opcional)">
+            <input type="text" id="endereco-cliente" placeholder="Endereço (opcional)">
+            <button class="btn btn-primary" onclick="salvarCliente()">Salvar Cliente</button>
+        </div>
+    </div>
     
     <div id="servicos" class="tab-content">
         <div class="form-section">
@@ -114,11 +155,411 @@
     </div>
     
     <div id="recebimentos" class="tab-content">
+        <div class="form-section">
+            <h2>Painel de Recebimentos</h2>
+            <div id="resumo-recebimentos"></div>
         </div>
+    </div>
+
+    <div id="modal-selecionar-cliente" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Selecione um Cliente</h2>
+                <span class="close-button" onclick="fecharModal('modal-selecionar-cliente')">&times;</span>
+            </div>
+            <input type="text" placeholder="Filtrar..." onkeyup="renderizarListaModalClientes(this.value)">
+            <div id="lista-modal-clientes" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <div id="modal-finalizar-pedido" class="modal">
+         <div class="modal-content">
+            <div class="modal-header">
+                <h2>Finalizar Pedido</h2>
+                <span class="close-button" onclick="fecharModal('modal-finalizar-pedido')">&times;</span>
+            </div>
+            <p>Total do Pedido: <strong id="total-pedido-modal">R$ 0.00</strong></p>
+            <input type="hidden" id="servico-id-modal">
+            <label>Método de Pagamento:</label>
+            <select id="metodo-pagamento-modal"></select>
+            <label>Valor Recebido:</label>
+            <input type="number" id="valor-recebido-modal" placeholder="0.00">
+            <button class="btn btn-success" style="width: 100%; margin-top: 20px;" onclick="confirmarFinalizacao()">Confirmar Recebimento</button>
+        </div>
+    </div>
 
     <script>
-        // ... (todo o script anterior) ...
-        // Vou substituir as funções modificadas e adicionar as novas abaixo
+        let db = {};
+        let servicosAdicionados = [];
+        let clienteSelecionadoOrcamento = null;
+        let insumosParaServicoAtual = [];
+
+        const dadosIniciaisPadrao = {
+            "clientes": [], "servicos": [], "precos": [], "insumos": [],
+            "configuracoes": { "metodosPagamento": ["Dinheiro", "Pix", "Cartão de Crédito", "Cartão de Débito"] }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const dadosLocais = localStorage.getItem('cleanMasterDB');
+                db = dadosLocais ? JSON.parse(dadosLocais) : dadosIniciaisPadrao;
+            } catch (error) {
+                console.error("Erro ao carregar dados, usando padrão.", error);
+                db = dadosIniciaisPadrao;
+            }
+            iniciarApp();
+        });
+        
+        function iniciarApp() {
+            if (!db.insumos) db.insumos = [];
+            if (!db.precos) db.precos = [];
+            if (!db.servicos) db.servicos = [];
+            if (!db.clientes) db.clientes = [];
+            if (!db.configuracoes) db.configuracoes = { metodosPagamento: ['Dinheiro', 'Pix']};
+            
+            abrirTab('orcamento');
+            popularServicosSelect();
+            renderizarAbaClientes();
+            renderizarAbaServicos();
+            renderizarAbaInsumos();
+            renderizarAbaRecebimentos();
+            document.getElementById('data-servico').valueAsDate = new Date();
+        }
+        
+        function salvarDB() {
+            localStorage.setItem('cleanMasterDB', JSON.stringify(db));
+        }
+
+        function abrirTab(nomeTab) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(nomeTab).classList.add('active');
+            document.querySelector(`.tab-button[onclick="abrirTab('${nomeTab}')"]`).classList.add('active');
+        }
+
+        // --- ABA ORÇAMENTO ---
+        function popularServicosSelect() {
+            const select = document.getElementById('servico-select');
+            select.innerHTML = '<option value="">Selecione um serviço...</option>';
+            (db.precos || []).forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.nome} (R$ ${p.preco.toFixed(2)})</option>`;
+            });
+        }
+        function adicionarServicoOrcamento() {
+            const servicoId = document.getElementById('servico-select').value;
+            if (!servicoId) return;
+            const servicoInfo = db.precos.find(p => p.id == servicoId);
+            if (servicoInfo) {
+                servicosAdicionados.push(servicoInfo);
+                renderizarServicosAdicionados();
+            }
+        }
+        function removerServicoOrcamento(index) {
+            servicosAdicionados.splice(index, 1);
+            renderizarServicosAdicionados();
+        }
+        function renderizarServicosAdicionados() {
+            const lista = document.getElementById('lista-servicos-adicionados');
+            lista.innerHTML = '';
+            servicosAdicionados.forEach((servico, index) => {
+                lista.innerHTML += `<div class="servico-item"><span>${servico.nome} - R$ ${servico.preco.toFixed(2)}</span><button class="btn btn-danger btn-sm" onclick="removerServicoOrcamento(${index})">&times;</button></div>`;
+            });
+            atualizarResumoFinanceiro();
+        }
+        function atualizarResumoFinanceiro() {
+            const custoTotal = servicosAdicionados.reduce((acc, s) => acc + (s.custo || 0), 0);
+            const precoTotal = servicosAdicionados.reduce((acc, s) => acc + s.preco, 0);
+            document.getElementById('custo-total').textContent = `R$ ${custoTotal.toFixed(2)}`;
+            document.getElementById('preco-total').textContent = `R$ ${precoTotal.toFixed(2)}`;
+            document.getElementById('lucro-total').textContent = `R$ ${(precoTotal - custoTotal).toFixed(2)}`;
+        }
+        function salvarServico() {
+            if (!clienteSelecionadoOrcamento) { alert('ERRO: Por favor, selecione um cliente.'); return; }
+            if (servicosAdicionados.length === 0) { alert('Adicione pelo menos um serviço.'); return; }
+            const novoServico = {
+                id: 'servico_' + Date.now(), clienteId: clienteSelecionadoOrcamento.id,
+                itens: servicosAdicionados.map(s => s.nome).join(', '),
+                data: document.getElementById('data-servico').value,
+                custoTotal: servicosAdicionados.reduce((acc, s) => acc + (s.custo || 0), 0),
+                precoTotal: servicosAdicionados.reduce((acc, s) => acc + s.preco, 0),
+                status: 'A Receber', metodoPagamento: null, valorRecebido: null
+            };
+            db.servicos.push(novoServico);
+            salvarDB();
+            alert('Serviço salvo com sucesso para ' + clienteSelecionadoOrcamento.nome);
+            servicosAdicionados = [];
+            clienteSelecionadoOrcamento = null;
+            renderizarServicosAdicionados();
+            const aviso = document.getElementById('cliente-orcamento-aviso');
+            document.getElementById('cliente-selecionado-texto').textContent = 'Selecione ou cadastre um cliente';
+            aviso.classList.remove('selecionado');
+            renderizarAbaClientes();
+        }
+        
+        // --- ABA CLIENTES ---
+        function renderizarAbaClientes() {
+            const filtro = document.getElementById('filtro-clientes').value.toLowerCase();
+            const lista = document.getElementById('lista-clientes');
+            lista.innerHTML = '';
+            (db.clientes || []).filter(c => c.nome.toLowerCase().includes(filtro)).forEach(cliente => {
+                const pedidosDoCliente = (db.servicos || []).filter(s => s.clienteId === cliente.id);
+                let pedidosHtml = '';
+                pedidosDoCliente.forEach(pedido => {
+                    const statusClass = pedido.status === 'A Receber' ? 'status-receber' : 'status-finalizado';
+                    const statusText = pedido.status === 'Finalizado' ? `Finalizado (${pedido.metodoPagamento || ''})` : 'A Receber';
+                    const botaoFinalizar = pedido.status === 'A Receber' ? `<button class="btn btn-warning btn-sm" onclick="abrirModalFinalizar('${pedido.id}', ${pedido.precoTotal})">Finalizar</button>` : '';
+                    pedidosHtml += `<div class="pedido-card ${pedido.status === 'Finalizado' ? 'finalizado' : ''}"><div class="pedido-header">${new Date(pedido.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'})} - <span class="${statusClass}">${statusText}</span></div><div>${pedido.itens}</div><strong>Total: R$ ${pedido.precoTotal.toFixed(2)}</strong><div style="margin-top: 10px; display: flex; gap: 5px;">${botaoFinalizar}</div></div>`;
+                });
+                lista.innerHTML += `<div class="cliente-card"><div class="cliente-header" onclick="expandirCliente('${cliente.id}')"><span>${cliente.nome}</span></div><div class="cliente-pedidos" id="pedidos-${cliente.id}">${pedidosHtml || '<p>Nenhum pedido.</p>'}</div></div>`;
+            });
+        }
+        function salvarCliente() {
+            const nome = document.getElementById('nome-cliente').value.trim();
+            const telefone = document.getElementById('telefone-cliente').value.trim();
+            const endereco = document.getElementById('endereco-cliente').value.trim();
+            if (!nome) { alert('O nome do cliente é obrigatório.'); return; }
+            if ((db.clientes || []).some(c => c.nome.toLowerCase() === nome.toLowerCase())) { alert('Já existe um cliente com este nome.'); return; }
+            db.clientes.push({ id: 'cliente_' + Date.now(), nome, telefone, endereco });
+            salvarDB();
+            renderizarAbaClientes();
+            document.getElementById('nome-cliente').value = '';
+            document.getElementById('telefone-cliente').value = '';
+            document.getElementById('endereco-cliente').value = '';
+        }
+        function expandirCliente(clienteId) {
+            const el = document.getElementById(`pedidos-${clienteId}`);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        // --- ABA SERVIÇOS (PREÇOS) ---
+        function renderizarAbaServicos() {
+            const lista = document.getElementById('lista-precos');
+            lista.innerHTML = '';
+            (db.precos || []).forEach(p => {
+                const custoFormatado = `Custo: R$ ${(p.custo || 0).toFixed(2)}`;
+                const precoFormatado = `Preço: R$ ${(p.preco || 0).toFixed(2)}`;
+                const tempoFormatado = p.tempo_execucao ? ` | Tempo: ${p.tempo_execucao}` : '';
+                lista.innerHTML += `<div class="item-lista"><div><strong>${p.nome}</strong><br><small>${custoFormatado} | ${precoFormatado}${tempoFormatado}</small></div><div><button class="btn btn-warning btn-sm" onclick="editarPreco('${p.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="excluirPreco('${p.id}')">Excluir</button></div></div>`;
+            });
+            popularServicosSelect();
+            popularInsumosParaServicoSelect();
+        }
+        function salvarPreco() {
+            const id = document.getElementById('preco-id').value;
+            const nome = document.getElementById('preco-nome').value.trim();
+            const precoVenda = parseFloat(document.getElementById('preco-preco').value);
+            const despesas = parseFloat(document.getElementById('preco-despesas').value) || 0;
+            const impostoPerc = parseFloat(document.getElementById('preco-imposto').value) || 0;
+            const tempo_execucao = document.getElementById('preco-tempo').value.trim();
+            if (!nome || isNaN(precoVenda)) { alert("Nome e Preço de Venda são obrigatórios."); return; }
+            let custoInsumos = 0;
+            insumosParaServicoAtual.forEach(item => {
+                const insumoBase = db.insumos.find(i => i.id === item.insumoId);
+                if (insumoBase && insumoBase.quantidade_total > 0) {
+                    const custoPorUnidade = insumoBase.custo_total / insumoBase.quantidade_total;
+                    custoInsumos += custoPorUnidade * item.quantidade;
+                }
+            });
+            const valorImposto = (precoVenda * impostoPerc) / 100;
+            const custoTotalCalculado = custoInsumos + despesas + valorImposto;
+            const novoServico = {
+                id: id || 'preco_' + Date.now(), nome, preco: precoVenda, custo: custoTotalCalculado,
+                despesas, imposto: impostoPerc, tempo_execucao, insumos_utilizados: insumosParaServicoAtual
+            };
+            if (id) {
+                const index = db.precos.findIndex(p => p.id == id);
+                if(index > -1) db.precos[index] = novoServico;
+            } else {
+                db.precos.push(novoServico);
+            }
+            salvarDB();
+            renderizarAbaServicos();
+            limparFormPreco();
+        }
+        function editarPreco(id) {
+            const preco = db.precos.find(p => p.id == id);
+            document.getElementById('form-preco-titulo').textContent = "Editar Serviço";
+            document.getElementById('preco-id').value = preco.id;
+            document.getElementById('preco-nome').value = preco.nome;
+            document.getElementById('preco-preco').value = preco.preco;
+            document.getElementById('preco-despesas').value = preco.despesas || '';
+            document.getElementById('preco-imposto').value = preco.imposto || '';
+            document.getElementById('preco-tempo').value = preco.tempo_execucao || '';
+            insumosParaServicoAtual = [...(preco.insumos_utilizados || [])];
+            renderizarInsumosParaServico();
+        }
+        function excluirPreco(id) {
+            if (confirm("Excluir este serviço?")) {
+                db.precos = db.precos.filter(p => p.id != id);
+                salvarDB();
+                renderizarAbaServicos();
+            }
+        }
+        function limparFormPreco() {
+            document.getElementById('form-preco-titulo').textContent = "Novo Serviço";
+            document.getElementById('preco-id').value = '';
+            document.getElementById('preco-nome').value = '';
+            document.getElementById('preco-preco').value = '';
+            document.getElementById('preco-despesas').value = '';
+            document.getElementById('preco-imposto').value = '';
+            document.getElementById('preco-tempo').value = '';
+            insumosParaServicoAtual = [];
+            renderizarInsumosParaServico();
+        }
+        
+        // --- LÓGICA DE INSUMOS VINCULADOS A SERVIÇOS ---
+        function popularInsumosParaServicoSelect() {
+            const select = document.getElementById('insumo-para-servico-select');
+            select.innerHTML = '<option value="">Selecione um insumo</option>';
+            (db.insumos || []).forEach(i => {
+                select.innerHTML += `<option value="${i.id}">${i.nome}</option>`;
+            });
+        }
+        function adicionarInsumoAoServico() {
+            const insumoId = document.getElementById('insumo-para-servico-select').value;
+            const quantidade = parseFloat(document.getElementById('insumo-para-servico-qtd').value);
+            if (!insumoId || isNaN(quantidade) || quantidade <= 0) { alert("Selecione um insumo e uma quantidade válida."); return; }
+            if (insumosParaServicoAtual.some(i => i.insumoId === insumoId)) { alert("Este insumo já foi adicionado."); return; }
+            insumosParaServicoAtual.push({ insumoId, quantidade });
+            renderizarInsumosParaServico();
+        }
+        function removerInsumoDoServico(index) {
+            insumosParaServicoAtual.splice(index, 1);
+            renderizarInsumosParaServico();
+        }
+        function renderizarInsumosParaServico() {
+            const lista = document.getElementById('lista-insumos-para-servico');
+            lista.innerHTML = '';
+            insumosParaServicoAtual.forEach((item, index) => {
+                const insumoInfo = db.insumos.find(i => i.id === item.insumoId);
+                lista.innerHTML += `<div class="item-lista"><span>${insumoInfo.nome} - ${item.quantidade} ${insumoInfo.unidade}</span><button class="btn btn-danger btn-sm" onclick="removerInsumoDoServico(${index})">&times;</button></div>`;
+            });
+            document.getElementById('insumo-para-servico-select').value = '';
+            document.getElementById('insumo-para-servico-qtd').value = '';
+        }
+
+        // --- ABA INSUMOS ---
+        function renderizarAbaInsumos() {
+            const lista = document.getElementById('lista-insumos');
+            lista.innerHTML = '';
+            (db.insumos || []).forEach(i => {
+                const custoPorUnidade = (i.quantidade_total > 0) ? (i.custo_total / i.quantidade_total).toFixed(2) : '0.00';
+                lista.innerHTML += `<div class="item-lista"><div><strong>${i.nome}</strong><br><small>Custo Total: R$ ${i.custo_total.toFixed(2)} | Qtd: ${i.quantidade_total} ${i.unidade} | Custo/Unid: R$ ${custoPorUnidade}</small></div><button class="btn btn-danger btn-sm" onclick="excluirInsumo('${i.id}')">Excluir</button></div>`;
+            });
+            popularInsumosParaServicoSelect();
+        }
+        function salvarInsumo() {
+            const nome = document.getElementById('insumo-nome').value.trim();
+            const custo_total = parseFloat(document.getElementById('insumo-custo-total').value);
+            const quantidade_total = parseFloat(document.getElementById('insumo-qtd-total').value);
+            const unidade = document.getElementById('insumo-unidade').value.trim();
+            if (!nome || !unidade || isNaN(custo_total) || isNaN(quantidade_total)) { alert("Preencha todos os campos corretamente."); return; }
+            db.insumos.push({ id: 'insumo_' + Date.now(), nome, custo_total, quantidade_total, unidade });
+            salvarDB();
+            renderizarAbaInsumos();
+            document.getElementById('insumo-nome').value = '';
+            document.getElementById('insumo-custo-total').value = '';
+            document.getElementById('insumo-qtd-total').value = '';
+            document.getElementById('insumo-unidade').value = '';
+        }
+        function excluirInsumo(id) {
+            if(confirm("Excluir este insumo?")) {
+                db.insumos = db.insumos.filter(i => i.id != id);
+                salvarDB();
+                renderizarAbaInsumos();
+            }
+        }
+        
+        // --- ABA RECEBIMENTOS ---
+        function renderizarAbaRecebimentos() {
+            const container = document.getElementById('resumo-recebimentos');
+            const servicosFinalizados = (db.servicos || []).filter(s => s.status === 'Finalizado');
+            if(servicosFinalizados.length === 0) { container.innerHTML = "<p>Nenhum recebimento registrado.</p>"; return; }
+            const totalRecebido = servicosFinalizados.reduce((acc, s) => acc + (s.valorRecebido || 0), 0);
+            const custoTotal = servicosFinalizados.reduce((acc, s) => acc + (s.custoTotal || 0), 0);
+            const lucroTotal = totalRecebido - custoTotal;
+            const porMetodo = servicosFinalizados.reduce((acc, s) => {
+                const metodo = s.metodoPagamento || 'Não especificado';
+                acc[metodo] = (acc[metodo] || 0) + (s.valorRecebido || 0);
+                return acc;
+            }, {});
+            let resumoMetodoHtml = '<h3>Recebimentos por Método</h3>';
+            for (const metodo in porMetodo) {
+                resumoMetodoHtml += `<p>${metodo}: <strong>R$ ${porMetodo[metodo].toFixed(2)}</strong></p>`;
+            }
+            container.innerHTML = `<div class="resumo-financeiro"><p>Total Recebido: <span>R$ ${totalRecebido.toFixed(2)}</span></p><p>Custo Total: <span>R$ ${custoTotal.toFixed(2)}</span></p><p style="color: #28a745;">Lucro Total: <span>R$ ${lucroTotal.toFixed(2)}</span></p></div><hr>${resumoMetodoHtml}`;
+        }
+
+        // --- MODAIS E FUNÇÕES AUXILIARES ---
+        function abrirModalSelecaoCliente() {
+            abrirModal('modal-selecionar-cliente');
+            renderizarListaModalClientes('');
+        }
+        function renderizarListaModalClientes(filtro) {
+            const lista = document.getElementById('lista-modal-clientes');
+            lista.innerHTML = '';
+            (db.clientes || []).filter(c => c.nome.toLowerCase().includes(filtro.toLowerCase())).forEach(cliente => {
+                lista.innerHTML += `<div class="item-lista" style="cursor: pointer;" onclick="selecionarClienteParaOrcamento('${cliente.id}')">${cliente.nome}</div>`;
+            });
+        }
+        function selecionarClienteParaOrcamento(clienteId) {
+            clienteSelecionadoOrcamento = db.clientes.find(c => c.id === clienteId);
+            const aviso = document.getElementById('cliente-orcamento-aviso');
+            document.getElementById('cliente-selecionado-texto').textContent = clienteSelecionadoOrcamento.nome;
+            aviso.classList.add('selecionado');
+            fecharModal('modal-selecionar-cliente');
+        }
+        function abrirModalFinalizar(servicoId, total) {
+            document.getElementById('servico-id-modal').value = servicoId;
+            document.getElementById('total-pedido-modal').textContent = `R$ ${total.toFixed(2)}`;
+            const select = document.getElementById('metodo-pagamento-modal');
+            select.innerHTML = '';
+            (db.configuracoes.metodosPagamento || []).forEach(metodo => {
+                select.innerHTML += `<option value="${metodo}">${metodo}</option>`;
+            });
+            document.getElementById('valor-recebido-modal').value = total.toFixed(2);
+            abrirModal('modal-finalizar-pedido');
+        }
+        function confirmarFinalizacao() {
+            const servicoId = document.getElementById('servico-id-modal').value;
+            const metodo = document.getElementById('metodo-pagamento-modal').value;
+            const valor = parseFloat(document.getElementById('valor-recebido-modal').value);
+            if (isNaN(valor)) { alert('Insira um valor recebido válido.'); return; }
+            const index = db.servicos.findIndex(s => s.id === servicoId);
+            if (index !== -1) {
+                db.servicos[index].status = 'Finalizado';
+                db.servicos[index].metodoPagamento = metodo;
+                db.servicos[index].valorRecebido = valor;
+                salvarDB();
+                fecharModal('modal-finalizar-pedido');
+                renderizarAbaClientes();
+                renderizarAbaRecebimentos();
+            }
+        }
+        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        // --- BOTÕES DE COMPARTILHAR E BAIXAR ---
+        function baixarImagemOrcamento() {
+            const node = document.getElementById('orcamento-para-imagem');
+            html2canvas(node, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `orcamento-${clienteSelecionadoOrcamento?.nome.replace(/ /g, '_') || 'sem-cliente'}-${new Date().toLocaleDateString()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+        async function compartilharOrcamento() {
+            const precoTotal = servicosAdicionados.reduce((acc, s) => acc + s.preco, 0);
+            const textoCompartilhar = `Olá, ${clienteSelecionadoOrcamento?.nome || 'cliente'}! Segue o seu orçamento: Total: R$ ${precoTotal.toFixed(2)}. Atenciosamente, Clean Master`;
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: 'Orçamento Clean Master', text: textoCompartilhar });
+                } catch (err) { console.error("Erro ao compartilhar:", err); }
+            } else {
+                navigator.clipboard.writeText(textoCompartilhar).then(() => alert("Orçamento copiado para a área de transferência!"));
+            }
+        }
     </script>
 </body>
 </html>
