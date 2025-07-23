@@ -47,6 +47,24 @@
           "quantidade": 1
         }
       ]
+    },
+    {
+      "id": 1753280441853,
+      "nome": "teste do preço",
+      "precoVenda": 200,
+      "custoMaoDeObra": 10,
+      "custoImposto": 10,
+      "tempoEstimado": 50,
+      "insumosVinculados": [
+        {
+          "insumoId": 1753269814340,
+          "quantidade": 1
+        },
+        {
+          "insumoId": 1753269862812,
+          "quantidade": 1
+        }
+      ]
     }
   ],
   "clientes": [
@@ -79,5 +97,9 @@
       "precoTotal": 180,
       "lucroTotal": 100
     }
-  ]
+  ],
+  "recebimentos": [],
+  "settings": {
+    "taxaCartao": 2.5
+  }
 }
