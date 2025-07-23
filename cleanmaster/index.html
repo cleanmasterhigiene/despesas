@@ -20,7 +20,6 @@
             text-align: center;
             font-size: 1.5em;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            position: relative;
         }
 
         .tabs {
@@ -142,7 +141,8 @@
             display: flex;
             justify-content: space-between;
         }
-
+        
+        /* Estilos do Cliente */
         .cliente-card {
             background-color: #fff;
             padding: 15px;
@@ -154,7 +154,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+        /* Adicionado para fazer o nome do cliente clicável para expandir */
+        .cliente-nome-expansivel {
+            font-weight: bold;
             cursor: pointer;
+            flex-grow: 1;
         }
         .cliente-pedidos {
             display: none; /* Inicia oculto */
@@ -180,13 +185,25 @@
         .pedido-header span.status-receber { color: #ffc107; }
         .pedido-header span.status-finalizado { color: #28a745; }
 
-        .btn-selecionar-cliente {
-            position: absolute;
-            top: 15px;
-            right: 20px;
+        /* Estilo para seleção de cliente no orçamento */
+        .cliente-orcamento-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            background-color: #fdecec;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
         }
-
-        /* Estilos do Modal */
+        .cliente-orcamento-container.selecionado {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        /* Estilos do Modal (adicionados) */
         .modal {
             display: none;
             position: fixed;
@@ -197,10 +214,11 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
         }
         .modal-content {
             background-color: #fefefe;
-            margin: 10% auto;
             padding: 20px;
             border: 1px solid #888;
             width: 90%;
@@ -222,7 +240,7 @@
             font-weight: bold;
             cursor: pointer;
         }
-        .modal-body ul { list-style: none; padding: 0; }
+        .modal-body ul { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; }
         .modal-body li { padding: 10px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
         .modal-body li:hover { background-color: #f1f1f1; }
     </style>
@@ -232,7 +250,6 @@
 
     <div class="header">
         Clean Master
-        <button id="btn-selecionar-cliente" class="btn btn-danger">Selecione ou cadastre um cliente</button>
     </div>
 
     <div class="tabs">
@@ -244,6 +261,14 @@
     </div>
 
     <div id="orcamento" class="tab-content active">
+        <div class="form-section">
+            <h2>1. Cliente</h2>
+            <div id="cliente-orcamento-container" class="cliente-orcamento-container">
+                <span id="cliente-selecionado-display">Nenhum cliente selecionado.</span>
+                <button class="btn btn-primary" onclick="abrirModalClientes()">Selecionar Cliente</button>
+            </div>
+        </div>
+
         <div class="form-section">
             <h2>2. Serviços</h2>
             <select id="servico-select"></select>
@@ -266,7 +291,7 @@
             <button class="btn btn-primary" style="flex: 1;">Baixar Imagem</button>
             <button class="btn btn-success" style="flex: 1;">Compartilhar</button>
         </div>
-        <button class.btn onclick="salvarServico()" class="btn btn-success" style="width: 100%; margin-top: 10px;">Salvar Serviço</button>
+        <button class="btn btn-success" onclick="salvarServico()" style="width: 100%; margin-top: 10px;">Salvar Serviço</button>
     </div>
 
     <div id="clientes" class="tab-content">
@@ -288,48 +313,47 @@
     <div id="insumos" class="tab-content"></div>
     <div id="recebimentos" class="tab-content"></div>
 
-    <div id="modal-selecionar-cliente" class="modal">
+    <div id="modal-clientes" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Selecione um Cliente</h2>
-                <span class="close-button" onclick="document.getElementById('modal-selecionar-cliente').style.display='none'">&times;</span>
+                <span class="close-button" onclick="fecharModalClientes()">&times;</span>
             </div>
             <div class="modal-body">
-                <input type="text" id="filtro-modal-clientes" placeholder="Buscar cliente..." onkeyup="renderizarListaModalClientes()">
+                <input type="text" id="filtro-modal-clientes" placeholder="Filtrar..." onkeyup="renderizarListaModalClientes()">
                 <ul id="lista-modal-clientes"></ul>
             </div>
         </div>
     </div>
-    
-    <div id="modal-finalizar-pedido" class="modal">
+
+    <div id="modal-finalizar" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Finalizar Pedido</h2>
-                <span class="close-button" onclick="document.getElementById('modal-finalizar-pedido').style.display='none'">&times;</span>
+                <span class="close-button" onclick="fecharModalFinalizar()">&times;</span>
             </div>
             <div class="modal-body">
                 <p>Total do Pedido: <strong id="total-pedido-modal">R$ 0.00</strong></p>
                 <input type="hidden" id="servico-id-modal">
-                
-                <label for="metodo-pagamento-modal">Método de Pagamento:</label>
-                <select id="metodo-pagamento-modal" class="form-control"></select>
-                
-                <label for="valor-recebido-modal" style="margin-top: 15px; display: block;">Valor Recebido:</label>
-                <input type="number" id="valor-recebido-modal" placeholder="Digite o valor recebido">
-                
+                <div class="form-group">
+                    <label for="metodo-pagamento-modal">Método de Pagamento:</label>
+                    <select id="metodo-pagamento-modal"></select>
+                </div>
+                <div class="form-group">
+                    <label for="valor-recebido-modal">Valor Recebido:</label>
+                    <input type="number" id="valor-recebido-modal" placeholder="0.00">
+                </div>
                 <button class="btn btn-success" style="width: 100%; margin-top: 20px;" onclick="confirmarFinalizacao()">Confirmar Recebimento</button>
             </div>
         </div>
     </div>
 
-
     <script>
         // Variáveis de estado globais
         let servicosAdicionados = [];
-        let clienteSelecionadoId = null;
-        let clienteSelecionadoNome = '';
+        let clienteSelecionadoId = null; // ID do cliente para o orçamento ATUAL
 
-        // Banco de dados em memória (localStorage)
+        // Sua base de dados original, carregada do localStorage
         let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
         let servicos = JSON.parse(localStorage.getItem('servicos')) || [];
         let configuracoes = JSON.parse(localStorage.getItem('configuracoes')) || {
@@ -343,12 +367,10 @@
 
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Inicialização da aplicação
             abrirTab('orcamento');
             popularServicosSelect();
             renderizarClientes();
             document.getElementById('data-servico').valueAsDate = new Date();
-            document.getElementById('btn-selecionar-cliente').addEventListener('click', abrirModalSelecionarCliente);
         });
 
         function abrirTab(nomeTab) {
@@ -358,8 +380,8 @@
             document.querySelector(`.tab-button[onclick="abrirTab('${nomeTab}')"]`).classList.add('active');
         }
 
-        // --- LÓGICA DE ORÇAMENTO ---
-
+        // --- LÓGICA DE ORÇAMENTO (COM CORREÇÕES) ---
+        
         function popularServicosSelect() {
             const select = document.getElementById('servico-select');
             select.innerHTML = '';
@@ -393,14 +415,8 @@
             servicosAdicionados.forEach((servico, index) => {
                 lista.innerHTML += `
                     <div class="servico-item">
-                        <div>
-                            <strong>${servico.nome}</strong><br>
-                            <small>Custo: R$ ${servico.custo.toFixed(2)}</small>
-                        </div>
-                        <div>
-                            Preço: R$ ${servico.preco.toFixed(2)}
-                            <button class="btn btn-danger" onclick="removerServico(${index})">&times;</button>
-                        </div>
+                        <span>${servico.nome} - R$ ${servico.preco.toFixed(2)}</span>
+                        <button class="btn btn-danger" onclick="removerServico(${index})">&times;</button>
                     </div>
                 `;
             });
@@ -416,9 +432,10 @@
             document.getElementById('lucro-total').textContent = `R$ ${lucroTotal.toFixed(2)}`;
         }
 
+        // ESTA É A SUA FUNÇÃO ORIGINAL, AGORA ELA VAI FUNCIONAR POIS O 'clienteSelecionadoId' SERÁ PREENCHIDO
         function salvarServico() {
             if (!clienteSelecionadoId) {
-                alert('Erro: Nenhum cliente selecionado. Por favor, selecione um cliente antes de salvar o serviço.');
+                alert('ERRO: Por favor, selecione um cliente para este orçamento.');
                 return;
             }
             if (servicosAdicionados.length === 0) {
@@ -434,52 +451,44 @@
                 custoTotal: servicosAdicionados.reduce((acc, s) => acc + s.custo, 0),
                 precoTotal: servicosAdicionados.reduce((acc, s) => acc + s.preco, 0),
                 status: 'A Receber', // Status inicial
+                // Campos para finalização adicionados para consistência
                 metodoPagamento: null,
-                valorRecebido: null,
+                valorRecebido: null
             };
 
             servicos.push(novoServico);
             localStorage.setItem('servicos', JSON.stringify(servicos));
 
-            alert('Serviço salvo com sucesso!');
+            alert('Serviço salvo com sucesso para o cliente selecionado!');
+            
             // Limpa o orçamento atual
             servicosAdicionados = [];
             renderizarServicosAdicionados();
             atualizarResumoFinanceiro();
             clienteSelecionadoId = null;
-            clienteSelecionadoNome = '';
-            atualizarBotaoCliente();
+            document.getElementById('cliente-selecionado-display').textContent = 'Nenhum cliente selecionado.';
+            document.getElementById('cliente-orcamento-container').classList.remove('selecionado');
+            
             renderizarClientes(); // Atualiza a aba de clientes com o novo pedido
         }
 
-        // --- LÓGICA DE CLIENTES ---
+        // --- LÓGICA DE CLIENTES (COM ADIÇÕES) ---
 
         function salvarCliente() {
             const nome = document.getElementById('nome-cliente').value.trim();
             const telefone = document.getElementById('telefone-cliente').value.trim();
             const endereco = document.getElementById('endereco-cliente').value.trim();
+            if (!nome) { alert('O nome do cliente é obrigatório.'); return; }
 
-            if (!nome) {
-                alert('O nome do cliente é obrigatório.');
-                return;
-            }
-
-            const novoCliente = {
-                id: 'cliente_' + Date.now(),
-                nome,
-                telefone,
-                endereco
-            };
-            clientes.push(novoCliente);
+            clientes.push({ id: 'cliente_' + Date.now(), nome, telefone, endereco });
             localStorage.setItem('clientes', JSON.stringify(clientes));
             renderizarClientes();
-
-            // Limpa os campos
             document.getElementById('nome-cliente').value = '';
             document.getElementById('telefone-cliente').value = '';
             document.getElementById('endereco-cliente').value = '';
         }
 
+        // SUA FUNÇÃO ORIGINAL, MODIFICADA APENAS PARA ADICIONAR O BOTÃO "FINALIZAR"
         function renderizarClientes() {
             const filtro = document.getElementById('filtro-clientes').value.toLowerCase();
             const lista = document.getElementById('lista-clientes');
@@ -493,17 +502,21 @@
 
                 pedidosDoCliente.forEach(pedido => {
                     const statusClass = pedido.status === 'A Receber' ? 'status-receber' : 'status-finalizado';
-                    const statusText = pedido.status === 'A Receber' ? 'A Receber' : `Finalizado (${pedido.metodoPagamento})`;
+                    const statusText = pedido.status === 'Finalizado' ? `Finalizado (${pedido.metodoPagamento || ''})` : 'A Receber';
+                    // ADIÇÃO DO BOTÃO FINALIZAR
+                    const botaoFinalizar = pedido.status === 'A Receber' 
+                        ? `<button class="btn btn-warning btn-sm" onclick="abrirModalFinalizar('${pedido.id}', ${pedido.precoTotal})">Finalizar</button>`
+                        : '';
 
                     pedidosHtml += `
-                        <div class="pedido-card ${pedido.status.toLowerCase()}">
+                        <div class="pedido-card ${pedido.status === 'Finalizado' ? 'finalizado' : ''}">
                             <div class="pedido-header">${new Date(pedido.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'})} - <span class="${statusClass}">${statusText}</span></div>
                             <div>${pedido.itens}</div>
                             <strong>Total: R$ ${pedido.precoTotal.toFixed(2)}</strong>
-                            <div style="margin-top: 10px;">
+                            <div style="margin-top: 10px; display: flex; gap: 5px;">
                                 <button class="btn btn-primary btn-sm">Baixar</button>
                                 <button class="btn btn-success btn-sm">Compartilhar</button>
-                                ${pedido.status === 'A Receber' ? `<button class="btn btn-warning btn-sm" onclick="abrirModalFinalizar('${pedido.id}', ${pedido.precoTotal})">Finalizar</button>` : ''}
+                                ${botaoFinalizar}
                             </div>
                         </div>
                     `;
@@ -511,8 +524,8 @@
 
                 lista.innerHTML += `
                     <div class="cliente-card">
-                        <div class="cliente-header" onclick="expandirCliente('${cliente.id}')">
-                            <strong>${cliente.nome}</strong>
+                        <div class="cliente-header">
+                            <span class="cliente-nome-expansivel" onclick="expandirCliente('${cliente.id}')">${cliente.nome}</span>
                             <div>
                                 <button class="btn btn-warning btn-sm">Editar</button>
                                 <button class="btn btn-danger btn-sm">Excluir</button>
@@ -531,96 +544,88 @@
             if (pedidosDiv.style.display === 'block') {
                 pedidosDiv.style.display = 'none';
             } else {
+                // Oculta todos os outros antes de abrir o atual, para não poluir a tela
+                document.querySelectorAll('.cliente-pedidos').forEach(div => div.style.display = 'none');
                 pedidosDiv.style.display = 'block';
             }
         }
         
-        // --- NOVA LÓGICA DOS MODAIS ---
+        // --- NOVAS FUNÇÕES PARA SELEÇÃO DE CLIENTE E FINALIZAÇÃO ---
 
-        function abrirModalSelecionarCliente() {
+        function abrirModalClientes() {
+            document.getElementById('modal-clientes').style.display = 'flex';
+            document.getElementById('filtro-modal-clientes').value = '';
             renderizarListaModalClientes();
-            document.getElementById('modal-selecionar-cliente').style.display = 'block';
             document.getElementById('filtro-modal-clientes').focus();
+        }
+
+        function fecharModalClientes() {
+            document.getElementById('modal-clientes').style.display = 'none';
         }
 
         function renderizarListaModalClientes() {
             const filtro = document.getElementById('filtro-modal-clientes').value.toLowerCase();
             const lista = document.getElementById('lista-modal-clientes');
             lista.innerHTML = '';
-            
             const clientesFiltrados = clientes.filter(c => c.nome.toLowerCase().includes(filtro));
-            
             clientesFiltrados.forEach(cliente => {
-                const li = document.createElement('li');
-                li.textContent = cliente.nome;
-                li.onclick = () => selecionarCliente(cliente.id, cliente.nome);
-                lista.appendChild(li);
+                const item = document.createElement('li');
+                item.textContent = cliente.nome;
+                item.onclick = () => selecionarClienteParaOrcamento(cliente.id, cliente.nome);
+                lista.appendChild(item);
             });
         }
         
-        function selecionarCliente(id, nome) {
+        function selecionarClienteParaOrcamento(id, nome) {
             clienteSelecionadoId = id;
-            clienteSelecionadoNome = nome;
-            document.getElementById('modal-selecionar-cliente').style.display = 'none';
-            atualizarBotaoCliente();
+            const display = document.getElementById('cliente-selecionado-display');
+            display.textContent = `Cliente: ${nome}`;
+            document.getElementById('cliente-orcamento-container').classList.add('selecionado');
+            fecharModalClientes();
         }
-        
-        function atualizarBotaoCliente() {
-            const btn = document.getElementById('btn-selecionar-cliente');
-            if(clienteSelecionadoId) {
-                btn.textContent = `Cliente: ${clienteSelecionadoNome}`;
-                btn.classList.remove('btn-danger');
-                btn.classList.add('btn-success');
-            } else {
-                btn.textContent = 'Selecione ou cadastre um cliente';
-                btn.classList.add('btn-danger');
-                btn.classList.remove('btn-success');
-            }
-        }
-        
+
         function abrirModalFinalizar(servicoId, total) {
-            document.getElementById('total-pedido-modal').textContent = `R$ ${total.toFixed(2)}`;
             document.getElementById('servico-id-modal').value = servicoId;
+            document.getElementById('total-pedido-modal').textContent = `R$ ${total.toFixed(2)}`;
             
             const selectPagamento = document.getElementById('metodo-pagamento-modal');
             selectPagamento.innerHTML = '';
             configuracoes.metodosPagamento.forEach(metodo => {
-                const option = document.createElement('option');
-                option.value = metodo;
-                option.textContent = metodo;
-                selectPagamento.appendChild(option);
+                selectPagamento.innerHTML += `<option value="${metodo}">${metodo}</option>`;
             });
-            
+
             document.getElementById('valor-recebido-modal').value = total.toFixed(2);
-            document.getElementById('modal-finalizar-pedido').style.display = 'block';
+            document.getElementById('modal-finalizar').style.display = 'flex';
         }
         
+        function fecharModalFinalizar() {
+            document.getElementById('modal-finalizar').style.display = 'none';
+        }
+
         function confirmarFinalizacao() {
             const servicoId = document.getElementById('servico-id-modal').value;
-            const metodoPagamento = document.getElementById('metodo-pagamento-modal').value;
-            const valorRecebido = parseFloat(document.getElementById('valor-recebido-modal').value);
+            const metodo = document.getElementById('metodo-pagamento-modal').value;
+            const valor = parseFloat(document.getElementById('valor-recebido-modal').value);
 
-            if (isNaN(valorRecebido) || valorRecebido <= 0) {
+            if (isNaN(valor)) {
                 alert('Por favor, insira um valor recebido válido.');
                 return;
             }
 
-            const servicoIndex = servicos.findIndex(s => s.id === servicoId);
-            if(servicoIndex > -1) {
-                servicos[servicoIndex].status = 'Finalizado';
-                servicos[servicoIndex].metodoPagamento = metodoPagamento;
-                servicos[servicoIndex].valorRecebido = valorRecebido;
+            const index = servicos.findIndex(s => s.id === servicoId);
+            if (index !== -1) {
+                servicos[index].status = 'Finalizado';
+                servicos[index].metodoPagamento = metodo;
+                servicos[index].valorRecebido = valor;
 
                 localStorage.setItem('servicos', JSON.stringify(servicos));
                 
-                alert('Pedido finalizado com sucesso!');
-                document.getElementById('modal-finalizar-pedido').style.display = 'none';
-                renderizarClientes(); // Atualiza a lista para mostrar o novo status
+                fecharModalFinalizar();
+                renderizarClientes(); // Atualiza a tela para mostrar a mudança de status
             } else {
-                alert('Erro: Serviço não encontrado.');
+                alert('Erro: não foi possível encontrar o serviço.');
             }
         }
     </script>
-
 </body>
 </html>
