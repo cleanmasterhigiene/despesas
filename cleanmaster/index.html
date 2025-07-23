@@ -443,8 +443,12 @@
             const lista = document.getElementById('lista-insumos');
             lista.innerHTML = '';
             (db.insumos || []).forEach(i => {
-                const custoPorUnidade = (i.quantidade_total > 0) ? (i.custo_total / i.quantidade_total).toFixed(2) : '0.00';
-                lista.innerHTML += `<div class="item-lista"><div><strong>${i.nome}</strong><br><small>Custo Total: R$ ${i.custo_total.toFixed(2)} | Qtd: ${i.quantidade_total} ${i.unidade} | Custo/Unid: R$ ${custoPorUnidade}</small></div><button class="btn btn-danger btn-sm" onclick="excluirInsumo('${i.id}')">Excluir</button></div>`;
+                // CORREÇÃO: Garante que os valores existam antes de usar toFixed
+                const custoTotal = i.custo_total || 0;
+                const qtdTotal = i.quantidade_total || 0;
+                const unidade = i.unidade || '';
+                const custoPorUnidade = (qtdTotal > 0) ? (custoTotal / qtdTotal).toFixed(2) : '0.00';
+                lista.innerHTML += `<div class="item-lista"><div><strong>${i.nome}</strong><br><small>Custo Total: R$ ${custoTotal.toFixed(2)} | Qtd: ${qtdTotal} ${unidade} | Custo/Unid: R$ ${custoPorUnidade}</small></div><button class="btn btn-danger btn-sm" onclick="excluirInsumo('${i.id}')">Excluir</button></div>`;
             });
             popularInsumosParaServicoSelect();
         }
