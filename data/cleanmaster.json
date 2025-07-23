@@ -1,5 +1,14 @@
 {
-  "insumos": [],
+  "insumos": [
+    {
+      "id": 1753269814340,
+      "nome": "testeinsumo",
+      "precoTotal": 100,
+      "quantidadeTotal": 10,
+      "unidadeMedida": "L",
+      "custoPorUnidade": 10
+    }
+  ],
   "servicosPadrao": [],
   "clientes": [],
   "servicosPrestados": []
