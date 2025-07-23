@@ -561,7 +561,7 @@
                     if (orcamentoAtual.servicos.length === 0) { showToast('Adicione pelo menos um serviço.', 'error'); return; }
                     
                     const totais = orcamentoAtual.servicos.reduce((acc, s) => { acc.custo += s.custo; acc.preco += s.preco; return acc; }, { custo: 0, preco: 0 });
-                    const servicoPrestado = { id: Date.now(), data: document.getElementById('orcamento-data').value, clienteId: clienteFinal.id, clienteNome: clienteFinal.nome, servicos: orcamentoAtual.servicos.map(({tempId, ...rest}) => rest), custoTotal: totais.custo, precoTotal: totais.preco, lucroTotal: totais.preco - totais.custo };
+                    const servicoPrestado = { id: Date.now(), data: document.getElementById('orcamento-data').value, clienteId: clienteFinal.id, clienteNome: clienteFinal.nome, servicos: orcamentoAtual.servicos.map(({tempId, ...rest}) => rest), custoTotal: totais.custo, precoTotal: totais.preco, lucroTotal: totais.preco - totais.custo, status: 'A Receber' };
                     (appData.servicosPrestados = appData.servicosPrestados || []).push(servicoPrestado);
                     await saveData(`Serviço de R$${totais.preco.toFixed(2)} para ${clienteFinal.nome}`);
                     
