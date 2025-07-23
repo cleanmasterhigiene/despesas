@@ -114,7 +114,6 @@
         </div>
 
         <div id="Lancamento" class="tab-content active">
-            <!-- Conteúdo da Aba Lançamento -->
             <h2>Criar Orçamento / Lançar Serviço</h2>
             <form id="orcamento-form" class="card">
                 <h4>1. Cliente</h4>
@@ -155,11 +154,11 @@
         </div>
 
         <div id="Servicos" class="tab-content">
-             <!-- Conteúdo da Aba Serviços -->
              <div class="card">
                 <h3>Criar/Editar Modelo de Serviço</h3>
                 <form id="servico-padrao-form">
                     <input type="text" id="sp-nome" placeholder="Nome do Serviço (ex: Limpeza Sofá 3 Lugares)" required>
+                    <input type="number" id="sp-preco-venda" placeholder="Preço de Venda Padrão (R$)" step="0.01" required>
                     <div class="inline-fields">
                         <input type="number" id="sp-mao-de-obra" placeholder="Mão de Obra (R$)" step="0.01"><input type="number" id="sp-imposto" placeholder="Impostos (R$)" step="0.01">
                     </div>
@@ -178,7 +177,6 @@
         </div>
 
         <div id="Insumos" class="tab-content">
-            <!-- Conteúdo da Aba Insumos -->
             <div class="card">
                 <h3>Cadastrar Novo Insumo</h3>
                 <form id="insumo-form">
@@ -331,9 +329,7 @@
                 }
                 appData.servicosPadrao.forEach(sp => {
                     const custoTotal = calcularCustoTotalServicoPadrao(sp);
-                    const item = document.createElement('div');
-                    item.className = 'servico-padrao-item';
-                    item.innerHTML = `<div class="item-info"><div class="nome">${sp.nome}</div><div class="custo">Custo Base: R$ ${custoTotal.toFixed(2)}</div></div><button type="button" class="delete-btn" data-id="${sp.id}">&times;</button>`;
+                    item.innerHTML = `<div class="item-info"><div class="nome">${sp.nome}</div><div class="custo">Preço Venda: R$ ${(sp.precoVenda || 0).toFixed(2)} / Custo: R$ ${custoTotal.toFixed(2)}</div></div><button type="button" class="delete-btn" data-id="${sp.id}">&times;</button>`;
                     lista.appendChild(item);
                 });
             }
@@ -541,7 +537,7 @@
                 document.getElementById('servico-padrao-form')?.addEventListener('submit', async (e) => { e.preventDefault();
                     const form = e.target; const nome = form.elements['sp-nome'].value;
                     if (!nome) { showToast('O nome do serviço é obrigatório.', 'error'); return; }
-                    const novoServico = { id: Date.now(), nome, custoMaoDeObra: parseFloat(form.elements['sp-mao-de-obra'].value) || 0, custoImposto: parseFloat(form.elements['sp-imposto'].value) || 0, tempoEstimado: parseInt(form.elements['sp-tempo'].value) || 0, insumosVinculados: insumosVinculadosCache };
+                    const novoServico = { id: Date.now(), nome, precoVenda: parseFloat(form.elements['sp-preco-venda'].value) || 0, custoMaoDeObra: parseFloat(form.elements['sp-mao-de-obra'].value) || 0, custoImposto: parseFloat(form.elements['sp-imposto'].value) || 0, tempoEstimado: parseInt(form.elements['sp-tempo'].value) || 0, insumosVinculados: insumosVinculadosCache };
                     (appData.servicosPadrao = appData.servicosPadrao || []).push(novoServico);
                     await saveData(`Criado modelo de serviço: ${novoServico.nome}`);
                     form.reset(); insumosVinculadosCache = []; renderInsumosVinculados(); renderServicosPadraoList(); populateServicoPadraoSelect();
@@ -588,6 +584,8 @@
                             form.dataset.servicoId = servicoId;
                             const servico = appData.servicosPrestados.find(sp => sp.id === servicoId);
                             form.querySelector('.pagamento-valor-final').value = servico.precoTotal.toFixed(2);
+                        } else if (placeholder) {
+                            placeholder.innerHTML = ''; // Fecha se já estiver aberto
                         }
                     }
                     // (Restante dos listeners de ação do histórico)
@@ -629,7 +627,7 @@
                     const servicoId = document.getElementById('servico-select-orcamento').value; if (!servicoId) return;
                     const servico = appData.servicosPadrao.find(sp => sp.id == servicoId); if(!servico) return;
                     const custo = calcularCustoTotalServicoPadrao(servico);
-                    orcamentoAtual.servicos.push({ tempId: Date.now(), servicoPadraoId: servico.id, nome: servico.nome, custo, preco: custo });
+                    orcamentoAtual.servicos.push({ tempId: Date.now(), servicoPadraoId: servico.id, nome: servico.nome, custo, preco: servico.precoVenda || custo });
                     renderOrcamentoAtual();
                 });
                 
