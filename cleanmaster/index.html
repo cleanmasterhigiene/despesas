@@ -5,253 +5,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clean Master</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background-color: #f0f4f8;
-            color: #333;
-        }
-
-        .header {
-            background-color: #279AF1;
-            color: white;
-            padding: 15px 20px;
-            text-align: center;
-            font-size: 1.5em;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .tabs {
-            display: flex;
-            justify-content: center;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .tab-button {
-            padding: 15px 25px;
-            cursor: pointer;
-            border: none;
-            background-color: transparent;
-            font-size: 1em;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .tab-button.active {
-            border-bottom: 3px solid #279AF1;
-            color: #279AF1;
-            font-weight: bold;
-        }
-
-        .tab-content {
-            display: none;
-            padding: 20px;
-            max-width: 800px;
-            margin: 20px auto;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .form-section {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .form-section h2 {
-            margin-top: 0;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            color: #279AF1;
-        }
-
-        select,
-        input[type="text"],
-        input[type="number"],
-        input[type="date"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .btn {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn-primary {
-            background-color: #279AF1;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: #1a78c2;
-        }
-
-        .btn-success {
-            background-color: #28a745;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background-color: #218838;
-        }
-
-        .btn-danger {
-            background-color: #dc3545;
-            color: white;
-        }
-        
-        .btn-warning {
-            background-color: #ffc107;
-            color: #212529;
-        }
-
-        #lista-servicos-adicionados,
-        .resumo-financeiro {
-            margin-top: 20px;
-        }
-
-        .servico-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border: 1px solid #eee;
-            border-radius: 4px;
-            margin-bottom: 5px;
-        }
-
-        .resumo-financeiro p {
-            font-size: 1.2em;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        /* Estilos do Cliente */
-        .cliente-card {
-            background-color: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        }
-        .cliente-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        /* Adicionado para fazer o nome do cliente clicável para expandir */
-        .cliente-nome-expansivel {
-            font-weight: bold;
-            cursor: pointer;
-            flex-grow: 1;
-        }
-        .cliente-pedidos {
-            display: none; /* Inicia oculto */
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #f0f0f0;
-        }
-        .pedido-card {
-            background-color: #f9f9f9;
-            border: 1px solid #eee;
-            border-left: 4px solid #279AF1;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-        .pedido-card.finalizado {
-            border-left-color: #28a745;
-        }
-        .pedido-header {
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-        .pedido-header span.status-receber { color: #ffc107; }
-        .pedido-header span.status-finalizado { color: #28a745; }
-
-        /* Estilo para seleção de cliente no orçamento */
-        .cliente-orcamento-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            background-color: #fdecec;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-        .cliente-orcamento-container.selecionado {
-            background-color: #d4edda;
-            border-color: #c3e6cb;
-            color: #155724;
-        }
-        
-        /* Estilos do Modal (adicionados) */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-content {
-            background-color: #fefefe;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 90%;
-            max-width: 500px;
-            border-radius: 8px;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
+        :root { --cor-principal: #279AF1; --cor-sucesso: #28a745; --cor-perigo: #dc3545; --cor-aviso: #ffc107; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f4f8; color: #333; }
+        .header { background-color: var(--cor-principal); color: white; padding: 15px 20px; text-align: center; font-size: 1.5em; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        .tabs { display: flex; justify-content: center; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+        .tab-button { padding: 15px 25px; cursor: pointer; border: none; background-color: transparent; font-size: 1em; border-bottom: 3px solid transparent; transition: all 0.3s ease; }
+        .tab-button.active { border-bottom: 3px solid var(--cor-principal); color: var(--cor-principal); font-weight: bold; }
+        .tab-content { display: none; padding: 20px; max-width: 800px; margin: 20px auto; }
+        .tab-content.active { display: block; }
+        .form-section { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 20px; }
+        #orcamento-para-imagem { background-color: white; }
+        .form-section h2 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; color: var(--cor-principal); }
+        select, input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1em; }
+        .btn { display: inline-block; text-align: center; vertical-align: middle; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; transition: background-color 0.2s ease; }
+        .btn-primary { background-color: var(--cor-principal); color: white; }
+        .btn-success { background-color: var(--cor-sucesso); color: white; }
+        .btn-danger { background-color: var(--cor-perigo); color: white; }
+        .btn-warning { background-color: var(--cor-aviso); color: #212529; }
+        .btn-sm { padding: 5px 10px; font-size: 0.9em; }
+        .servico-item, .item-lista { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .resumo-financeiro p { font-size: 1.2em; font-weight: bold; display: flex; justify-content: space-between; }
+        .cliente-card { background-color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .cliente-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; cursor: pointer; }
+        .cliente-pedidos { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0; }
+        .pedido-card { background-color: #f9f9f9; border: 1px solid #eee; border-left: 4px solid var(--cor-principal); padding: 15px; border-radius: 4px; margin-bottom: 10px; }
+        .pedido-card.finalizado { border-left-color: var(--cor-sucesso); }
+        .pedido-header { font-weight: bold; font-size: 1.1em; }
+        .pedido-header span.status-receber { color: var(--cor-aviso); }
+        .pedido-header span.status-finalizado { color: var(--cor-sucesso); }
+        .cliente-orcamento-aviso { padding: 10px; border-radius: 5px; margin-bottom: 20px; background-color: #fdecec; border: 1px solid #f5c6cb; color: #721c24; display: flex; justify-content: space-between; align-items: center; }
+        .cliente-orcamento-aviso.selecionado { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background-color: #fefefe; padding: 20px; border: 1px solid #888; width: 90%; max-width: 500px; border-radius: 8px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;}
         .modal-header h2 { margin: 0; }
-        .close-button {
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .modal-body ul { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; }
-        .modal-body li { padding: 10px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
-        .modal-body li:hover { background-color: #f1f1f1; }
+        .close-button { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 
 <body>
-
-    <div class="header">
-        Clean Master
-    </div>
-
+    <div class="header">Clean Master</div>
     <div class="tabs">
         <button class="tab-button active" onclick="abrirTab('orcamento')">Orçamento</button>
         <button class="tab-button" onclick="abrirTab('clientes')">Clientes</button>
@@ -261,35 +56,33 @@
     </div>
 
     <div id="orcamento" class="tab-content active">
-        <div class="form-section">
-            <h2>1. Cliente</h2>
-            <div id="cliente-orcamento-container" class="cliente-orcamento-container">
-                <span id="cliente-selecionado-display">Nenhum cliente selecionado.</span>
-                <button class="btn btn-primary" onclick="abrirModalClientes()">Selecionar Cliente</button>
+        <div id="orcamento-para-imagem">
+            <div class="form-section">
+                <h2>1. Cliente</h2>
+                <div id="cliente-orcamento-aviso" class="cliente-orcamento-aviso">
+                    <span id="cliente-selecionado-texto">Selecione ou cadastre um cliente</span>
+                    <button class="btn btn-primary" onclick="abrirModalSelecaoCliente()">Selecionar</button>
+                </div>
+            </div>
+            <div class="form-section">
+                <h2>2. Serviços</h2>
+                <select id="servico-select"></select>
+                <button class="btn btn-primary" onclick="adicionarServicoOrcamento()">Adicionar</button>
+                <div id="lista-servicos-adicionados"></div>
+            </div>
+            <div class="form-section">
+                <h2>3. Resumo Financeiro</h2>
+                <div class="resumo-financeiro">
+                    <p>Custo Total: <span id="custo-total">R$ 0.00</span></p>
+                    <p>Preço Total: <span id="preco-total">R$ 0.00</span></p>
+                    <p style="color: #28a745;">Lucro Total: <span id="lucro-total">R$ 0.00</span></p>
+                </div>
             </div>
         </div>
-
-        <div class="form-section">
-            <h2>2. Serviços</h2>
-            <select id="servico-select"></select>
-            <button class="btn btn-primary" onclick="adicionarServico()">Adicionar</button>
-            <div id="lista-servicos-adicionados"></div>
-        </div>
-
-        <div class="form-section">
-            <h2>3. Resumo Financeiro</h2>
-            <div class="resumo-financeiro">
-                <p>Custo Total: <span id="custo-total">R$ 0.00</span></p>
-                <p>Preço Total: <span id="preco-total">R$ 0.00</span></p>
-                <p style="color: #28a745;">Lucro Total: <span id="lucro-total">R$ 0.00</span></p>
-            </div>
-        </div>
-        
-        <input type="date" id="data-servico">
-
-        <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 20px;">
-            <button class="btn btn-primary" style="flex: 1;">Baixar Imagem</button>
-            <button class="btn btn-success" style="flex: 1;">Compartilhar</button>
+        <input type="date" id="data-servico" style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; gap: 10px;">
+            <button class="btn btn-primary" style="flex: 1;" onclick="baixarImagemOrcamento()">Baixar Imagem</button>
+            <button class="btn btn-success" style="flex: 1;" onclick="compartilharOrcamento()">Compartilhar</button>
         </div>
         <button class="btn btn-success" onclick="salvarServico()" style="width: 100%; margin-top: 10px;">Salvar Serviço</button>
     </div>
@@ -303,75 +96,153 @@
         <div class="form-section">
             <h2>Novo Cliente</h2>
             <input type="text" id="nome-cliente" placeholder="Nome do cliente">
-            <input type="text" id="telefone-cliente" placeholder="Telefone">
-            <input type="text" id="endereco-cliente" placeholder="Endereço">
+            <input type="text" id="telefone-cliente" placeholder="Telefone (opcional)">
+            <input type="text" id="endereco-cliente" placeholder="Endereço (opcional)">
             <button class="btn btn-primary" onclick="salvarCliente()">Salvar Cliente</button>
         </div>
     </div>
     
-    <div id="servicos" class="tab-content"></div>
-    <div id="insumos" class="tab-content"></div>
-    <div id="recebimentos" class="tab-content"></div>
-
-    <div id="modal-clientes" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Selecione um Cliente</h2>
-                <span class="close-button" onclick="fecharModalClientes()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <input type="text" id="filtro-modal-clientes" placeholder="Filtrar..." onkeyup="renderizarListaModalClientes()">
-                <ul id="lista-modal-clientes"></ul>
-            </div>
+    <div id="servicos" class="tab-content">
+        <div class="form-section">
+            <h2>Meus Serviços (Tabela de Preços)</h2>
+            <div id="lista-precos"></div>
+        </div>
+        <div class="form-section">
+            <h2 id="form-preco-titulo">Novo Serviço</h2>
+            <input type="hidden" id="preco-id">
+            <input type="text" id="preco-nome" placeholder="Nome do serviço (ex: Limpeza de Sofá 3 Lugares)">
+            <input type="number" id="preco-custo" placeholder="Custo (ex: 50.00)">
+            <input type="number" id="preco-preco" placeholder="Preço de Venda (ex: 200.00)">
+            <button class="btn btn-primary" onclick="salvarPreco()">Salvar Serviço</button>
+        </div>
+    </div>
+    
+    <div id="insumos" class="tab-content">
+        <div class="form-section">
+            <h2>Meus Insumos</h2>
+            <div id="lista-insumos"></div>
+        </div>
+        <div class="form-section">
+            <h2 id="form-insumo-titulo">Novo Insumo</h2>
+            <input type="hidden" id="insumo-id">
+            <input type="text" id="insumo-nome" placeholder="Nome do insumo (ex: Galão de Limpador)">
+            <input type="number" id="insumo-custo" placeholder="Custo (ex: 80.00)">
+            <button class="btn btn-primary" onclick="salvarInsumo()">Salvar Insumo</button>
+        </div>
+    </div>
+    
+    <div id="recebimentos" class="tab-content">
+        <div class="form-section">
+            <h2>Painel de Recebimentos</h2>
+            <div id="resumo-recebimentos"></div>
         </div>
     </div>
 
-    <div id="modal-finalizar" class="modal">
+    <div id="modal-selecionar-cliente" class="modal">
         <div class="modal-content">
             <div class="modal-header">
+                <h2>Selecione um Cliente</h2>
+                <span class="close-button" onclick="fecharModal('modal-selecionar-cliente')">&times;</span>
+            </div>
+            <input type="text" placeholder="Filtrar..." onkeyup="renderizarListaModalClientes(this.value)">
+            <div id="lista-modal-clientes" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <div id="modal-finalizar-pedido" class="modal">
+         <div class="modal-content">
+            <div class="modal-header">
                 <h2>Finalizar Pedido</h2>
-                <span class="close-button" onclick="fecharModalFinalizar()">&times;</span>
+                <span class="close-button" onclick="fecharModal('modal-finalizar-pedido')">&times;</span>
             </div>
-            <div class="modal-body">
-                <p>Total do Pedido: <strong id="total-pedido-modal">R$ 0.00</strong></p>
-                <input type="hidden" id="servico-id-modal">
-                <div class="form-group">
-                    <label for="metodo-pagamento-modal">Método de Pagamento:</label>
-                    <select id="metodo-pagamento-modal"></select>
-                </div>
-                <div class="form-group">
-                    <label for="valor-recebido-modal">Valor Recebido:</label>
-                    <input type="number" id="valor-recebido-modal" placeholder="0.00">
-                </div>
-                <button class="btn btn-success" style="width: 100%; margin-top: 20px;" onclick="confirmarFinalizacao()">Confirmar Recebimento</button>
-            </div>
+            <p>Total do Pedido: <strong id="total-pedido-modal">R$ 0.00</strong></p>
+            <input type="hidden" id="servico-id-modal">
+            <label>Método de Pagamento:</label>
+            <select id="metodo-pagamento-modal"></select>
+            <label>Valor Recebido:</label>
+            <input type="number" id="valor-recebido-modal" placeholder="0.00">
+            <button class="btn btn-success" style="width: 100%; margin-top: 20px;" onclick="confirmarFinalizacao()">Confirmar Recebimento</button>
         </div>
     </div>
 
     <script>
-        // Variáveis de estado globais
-        let servicosAdicionados = [];
-        let clienteSelecionadoId = null; // ID do cliente para o orçamento ATUAL
+        // Bloco principal da aplicação
+        let db = {}; // Nosso banco de dados local
+        let servicosAdicionados = []; // Orçamento atual
+        let clienteSelecionadoOrcamento = null;
 
-        // Sua base de dados original, carregada do localStorage
-        let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-        let servicos = JSON.parse(localStorage.getItem('servicos')) || [];
-        let configuracoes = JSON.parse(localStorage.getItem('configuracoes')) || {
-            metodosPagamento: ['Dinheiro', 'Cartão de Crédito', 'Cartão de Débito', 'Pix', 'Transferência Bancária']
-        };
-        let precos = JSON.parse(localStorage.getItem('precos')) || [
-             { id: 1, nome: 'teste do preço', custo: 40.00, preco: 200.00 },
-             { id: 2, nome: 'teste sofa 2', custo: 50.00, preco: 90.00 },
-             { id: 3, nome: 'teste sofa 123', custo: 60.00, preco: 90.00 },
-        ];
+        document.addEventListener('DOMContentLoaded', carregarDadosIniciais);
 
+        async function carregarDadosIniciais() {
+            try {
+                // Tenta carregar do localStorage primeiro, que é mais rápido e atualizado
+                const dadosLocais = localStorage.getItem('cleanMasterDB');
+                if (dadosLocais) {
+                    db = JSON.parse(dadosLocais);
+                    console.log("Dados carregados do localStorage.");
+                } else {
+                    // Se não houver dados locais, busca do GitHub
+                    const response = await fetch('https://raw.githubusercontent.com/cleanmasterhigiene/despesas/main/data/cleanmaster.json');
+                    db = await response.json();
+                    console.log("Dados carregados do GitHub.");
+                }
+                
+                migrarDadosAntigos(); // Função CRÍTICA para compatibilidade
+                iniciarApp();
 
-        document.addEventListener('DOMContentLoaded', () => {
+            } catch (error) {
+                console.error("ERRO FATAL AO CARREGAR DADOS:", error);
+                alert("Não foi possível carregar os dados. A aplicação iniciará com valores padrão.");
+                db = { clientes: [], servicos: [], precos: [], insumos: [], configuracoes: { metodosPagamento: ['Dinheiro', 'Pix'] } };
+                iniciarApp();
+            }
+        }
+
+        function migrarDadosAntigos() {
+            // Migra clientes de string para objeto
+            if (db.clientes && db.clientes.length > 0 && typeof db.clientes[0] === 'string') {
+                console.log("Migrando estrutura de clientes...");
+                db.clientes = db.clientes.map(nomeCliente => ({
+                    id: 'cliente_' + Math.random().toString(36).substr(2, 9),
+                    nome: nomeCliente,
+                    telefone: '',
+                    endereco: ''
+                }));
+            }
+            // Garante que todos os serviços tenham a estrutura nova
+            if (db.servicos && db.servicos.length > 0) {
+                 db.servicos.forEach(s => {
+                    if (s.status === undefined) s.status = 'A Receber';
+                    if (s.metodoPagamento === undefined) s.metodoPagamento = null;
+                    if (s.valorRecebido === undefined) s.valorRecebido = null;
+                    // Associa o cliente pelo nome se o ID não existir (compatibilidade)
+                    if (!s.clienteId && s.cliente) {
+                        const clienteObj = db.clientes.find(c => c.nome === s.cliente);
+                        if (clienteObj) s.clienteId = clienteObj.id;
+                    }
+                });
+            }
+            // Garante que arrays existam
+            if (!db.insumos) db.insumos = [];
+            if (!db.precos) db.precos = [];
+            if (!db.configuracoes) db.configuracoes = { metodosPagamento: ['Dinheiro', 'Pix', 'Cartão'] };
+            
+            salvarDB(); // Salva a estrutura nova no localStorage
+        }
+        
+        function iniciarApp() {
             abrirTab('orcamento');
             popularServicosSelect();
-            renderizarClientes();
+            renderizarAbaClientes();
+            renderizarAbaServicos();
+            renderizarAbaInsumos();
+            renderizarAbaRecebimentos();
             document.getElementById('data-servico').valueAsDate = new Date();
-        });
+        }
+        
+        function salvarDB() {
+            localStorage.setItem('cleanMasterDB', JSON.stringify(db));
+        }
 
         function abrirTab(nomeTab) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -380,35 +251,30 @@
             document.querySelector(`.tab-button[onclick="abrirTab('${nomeTab}')"]`).classList.add('active');
         }
 
-        // --- LÓGICA DE ORÇAMENTO (COM CORREÇÕES) ---
-        
+        // --- ABA ORÇAMENTO ---
         function popularServicosSelect() {
             const select = document.getElementById('servico-select');
-            select.innerHTML = '';
-            precos.forEach(p => {
-                const option = document.createElement('option');
-                option.value = p.id;
-                option.textContent = `${p.nome} (Preço: R$ ${p.preco.toFixed(2)})`;
-                select.appendChild(option);
+            select.innerHTML = '<option value="">Selecione um serviço...</option>';
+            db.precos.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.nome} (R$ ${p.preco.toFixed(2)})</option>`;
             });
         }
         
-        function adicionarServico() {
+        function adicionarServicoOrcamento() {
             const servicoId = document.getElementById('servico-select').value;
-            const servicoInfo = precos.find(p => p.id == servicoId);
+            if (!servicoId) return;
+            const servicoInfo = db.precos.find(p => p.id == servicoId);
             if (servicoInfo) {
                 servicosAdicionados.push(servicoInfo);
                 renderizarServicosAdicionados();
-                atualizarResumoFinanceiro();
             }
         }
         
-        function removerServico(index) {
+        function removerServicoOrcamento(index) {
             servicosAdicionados.splice(index, 1);
             renderizarServicosAdicionados();
-            atualizarResumoFinanceiro();
         }
-
+        
         function renderizarServicosAdicionados() {
             const lista = document.getElementById('lista-servicos-adicionados');
             lista.innerHTML = '';
@@ -416,25 +282,22 @@
                 lista.innerHTML += `
                     <div class="servico-item">
                         <span>${servico.nome} - R$ ${servico.preco.toFixed(2)}</span>
-                        <button class="btn btn-danger" onclick="removerServico(${index})">&times;</button>
-                    </div>
-                `;
+                        <button class="btn btn-danger btn-sm" onclick="removerServicoOrcamento(${index})">&times;</button>
+                    </div>`;
             });
+            atualizarResumoFinanceiro();
         }
         
         function atualizarResumoFinanceiro() {
             const custoTotal = servicosAdicionados.reduce((acc, s) => acc + s.custo, 0);
             const precoTotal = servicosAdicionados.reduce((acc, s) => acc + s.preco, 0);
-            const lucroTotal = precoTotal - custoTotal;
-
             document.getElementById('custo-total').textContent = `R$ ${custoTotal.toFixed(2)}`;
             document.getElementById('preco-total').textContent = `R$ ${precoTotal.toFixed(2)}`;
-            document.getElementById('lucro-total').textContent = `R$ ${lucroTotal.toFixed(2)}`;
+            document.getElementById('lucro-total').textContent = `R$ ${(precoTotal - custoTotal).toFixed(2)}`;
         }
 
-        // ESTA É A SUA FUNÇÃO ORIGINAL, AGORA ELA VAI FUNCIONAR POIS O 'clienteSelecionadoId' SERÁ PREENCHIDO
         function salvarServico() {
-            if (!clienteSelecionadoId) {
+            if (!clienteSelecionadoOrcamento) {
                 alert('ERRO: Por favor, selecione um cliente para este orçamento.');
                 return;
             }
@@ -445,161 +308,262 @@
 
             const novoServico = {
                 id: 'servico_' + Date.now(),
-                clienteId: clienteSelecionadoId,
+                clienteId: clienteSelecionadoOrcamento.id, // Salva o ID do cliente
                 itens: servicosAdicionados.map(s => s.nome).join(', '),
                 data: document.getElementById('data-servico').value,
                 custoTotal: servicosAdicionados.reduce((acc, s) => acc + s.custo, 0),
                 precoTotal: servicosAdicionados.reduce((acc, s) => acc + s.preco, 0),
-                status: 'A Receber', // Status inicial
-                // Campos para finalização adicionados para consistência
+                status: 'A Receber',
                 metodoPagamento: null,
                 valorRecebido: null
             };
 
-            servicos.push(novoServico);
-            localStorage.setItem('servicos', JSON.stringify(servicos));
-
-            alert('Serviço salvo com sucesso para o cliente selecionado!');
+            db.servicos.push(novoServico);
+            salvarDB();
+            alert('Serviço salvo com sucesso para ' + clienteSelecionadoOrcamento.nome);
             
-            // Limpa o orçamento atual
+            // Limpa o formulário de orçamento
             servicosAdicionados = [];
+            clienteSelecionadoOrcamento = null;
             renderizarServicosAdicionados();
-            atualizarResumoFinanceiro();
-            clienteSelecionadoId = null;
-            document.getElementById('cliente-selecionado-display').textContent = 'Nenhum cliente selecionado.';
-            document.getElementById('cliente-orcamento-container').classList.remove('selecionado');
-            
-            renderizarClientes(); // Atualiza a aba de clientes com o novo pedido
+            document.getElementById('cliente-selecionado-texto').textContent = 'Selecione ou cadastre um cliente';
+            document.getElementById('cliente-orcamento-aviso').classList.remove('selecionado');
+            document.getElementById('selecionar-cliente-btn').classList.remove('btn-success');
+            document.getElementById('selecionar-cliente-btn').classList.add('btn-danger');
+
+            renderizarAbaClientes(); // Atualiza a aba de clientes com o novo pedido
         }
-
-        // --- LÓGICA DE CLIENTES (COM ADIÇÕES) ---
-
-        function salvarCliente() {
-            const nome = document.getElementById('nome-cliente').value.trim();
-            const telefone = document.getElementById('telefone-cliente').value.trim();
-            const endereco = document.getElementById('endereco-cliente').value.trim();
-            if (!nome) { alert('O nome do cliente é obrigatório.'); return; }
-
-            clientes.push({ id: 'cliente_' + Date.now(), nome, telefone, endereco });
-            localStorage.setItem('clientes', JSON.stringify(clientes));
-            renderizarClientes();
-            document.getElementById('nome-cliente').value = '';
-            document.getElementById('telefone-cliente').value = '';
-            document.getElementById('endereco-cliente').value = '';
-        }
-
-        // SUA FUNÇÃO ORIGINAL, MODIFICADA APENAS PARA ADICIONAR O BOTÃO "FINALIZAR"
-        function renderizarClientes() {
+        
+        // --- ABA CLIENTES ---
+        function renderizarAbaClientes() {
             const filtro = document.getElementById('filtro-clientes').value.toLowerCase();
             const lista = document.getElementById('lista-clientes');
             lista.innerHTML = '';
             
-            const clientesFiltrados = clientes.filter(c => c.nome.toLowerCase().includes(filtro));
-
-            clientesFiltrados.forEach(cliente => {
-                const pedidosDoCliente = servicos.filter(s => s.clienteId === cliente.id);
+            db.clientes.filter(c => c.nome.toLowerCase().includes(filtro)).forEach(cliente => {
+                const pedidosDoCliente = db.servicos.filter(s => s.clienteId === cliente.id);
                 let pedidosHtml = '';
 
                 pedidosDoCliente.forEach(pedido => {
                     const statusClass = pedido.status === 'A Receber' ? 'status-receber' : 'status-finalizado';
                     const statusText = pedido.status === 'Finalizado' ? `Finalizado (${pedido.metodoPagamento || ''})` : 'A Receber';
-                    // ADIÇÃO DO BOTÃO FINALIZAR
                     const botaoFinalizar = pedido.status === 'A Receber' 
-                        ? `<button class="btn btn-warning btn-sm" onclick="abrirModalFinalizar('${pedido.id}', ${pedido.precoTotal})">Finalizar</button>`
-                        : '';
+                        ? `<button class="btn btn-warning btn-sm" onclick="abrirModalFinalizar('${pedido.id}', ${pedido.precoTotal})">Finalizar</button>` : '';
 
                     pedidosHtml += `
                         <div class="pedido-card ${pedido.status === 'Finalizado' ? 'finalizado' : ''}">
                             <div class="pedido-header">${new Date(pedido.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'})} - <span class="${statusClass}">${statusText}</span></div>
                             <div>${pedido.itens}</div>
                             <strong>Total: R$ ${pedido.precoTotal.toFixed(2)}</strong>
-                            <div style="margin-top: 10px; display: flex; gap: 5px;">
-                                <button class="btn btn-primary btn-sm">Baixar</button>
-                                <button class="btn btn-success btn-sm">Compartilhar</button>
-                                ${botaoFinalizar}
-                            </div>
-                        </div>
-                    `;
+                            <div style="margin-top: 10px; display: flex; gap: 5px;">${botaoFinalizar}</div>
+                        </div>`;
                 });
 
                 lista.innerHTML += `
                     <div class="cliente-card">
-                        <div class="cliente-header">
-                            <span class="cliente-nome-expansivel" onclick="expandirCliente('${cliente.id}')">${cliente.nome}</span>
-                            <div>
-                                <button class="btn btn-warning btn-sm">Editar</button>
-                                <button class="btn btn-danger btn-sm">Excluir</button>
-                            </div>
+                        <div class="cliente-header" onclick="expandirCliente('${cliente.id}')">
+                            <span>${cliente.nome}</span>
                         </div>
-                        <div class="cliente-pedidos" id="pedidos-${cliente.id}">
-                            ${pedidosHtml || '<p>Nenhum pedido para este cliente.</p>'}
-                        </div>
-                    </div>
-                `;
+                        <div class="cliente-pedidos" id="pedidos-${cliente.id}">${pedidosHtml || '<p>Nenhum pedido.</p>'}</div>
+                    </div>`;
             });
         }
         
+        function salvarCliente() {
+            const nome = document.getElementById('nome-cliente').value.trim();
+            const telefone = document.getElementById('telefone-cliente').value.trim();
+            const endereco = document.getElementById('endereco-cliente').value.trim();
+            if (!nome) { alert('O nome do cliente é obrigatório.'); return; }
+            if (db.clientes.some(c => c.nome.toLowerCase() === nome.toLowerCase())) {
+                alert('Já existe um cliente com este nome.');
+                return;
+            }
+            db.clientes.push({ id: 'cliente_' + Date.now(), nome, telefone, endereco });
+            salvarDB();
+            renderizarAbaClientes();
+            document.getElementById('nome-cliente').value = '';
+            document.getElementById('telefone-cliente').value = '';
+            document.getElementById('endereco-cliente').value = '';
+        }
+
         function expandirCliente(clienteId) {
             const pedidosDiv = document.getElementById(`pedidos-${clienteId}`);
-            if (pedidosDiv.style.display === 'block') {
-                pedidosDiv.style.display = 'none';
-            } else {
-                // Oculta todos os outros antes de abrir o atual, para não poluir a tela
-                document.querySelectorAll('.cliente-pedidos').forEach(div => div.style.display = 'none');
-                pedidosDiv.style.display = 'block';
+            const isVisible = pedidosDiv.style.display === 'block';
+            document.querySelectorAll('.cliente-pedidos').forEach(div => div.style.display = 'none');
+            pedidosDiv.style.display = isVisible ? 'none' : 'block';
+        }
+        
+        // --- ABA SERVIÇOS (TABELA DE PREÇOS) ---
+        function renderizarAbaServicos() {
+            const lista = document.getElementById('lista-precos');
+            lista.innerHTML = '';
+            db.precos.forEach(p => {
+                lista.innerHTML += `
+                    <div class="item-lista">
+                        <div>
+                            <strong>${p.nome}</strong><br>
+                            <small>Custo: R$ ${p.custo.toFixed(2)} | Preço: R$ ${p.preco.toFixed(2)}</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-warning btn-sm" onclick="editarPreco('${p.id}')">Editar</button>
+                            <button class="btn btn-danger btn-sm" onclick="excluirPreco('${p.id}')">Excluir</button>
+                        </div>
+                    </div>`;
+            });
+            popularServicosSelect(); // Atualiza o select de orçamento
+        }
+
+        function salvarPreco() {
+            const id = document.getElementById('preco-id').value;
+            const nome = document.getElementById('preco-nome').value.trim();
+            const custo = parseFloat(document.getElementById('preco-custo').value);
+            const preco = parseFloat(document.getElementById('preco-preco').value);
+
+            if (!nome || isNaN(custo) || isNaN(preco)) {
+                alert("Preencha todos os campos corretamente.");
+                return;
+            }
+            if (id) { // Editando
+                const index = db.precos.findIndex(p => p.id == id);
+                db.precos[index] = { id, nome, custo, preco };
+            } else { // Criando
+                db.precos.push({ id: 'preco_' + Date.now(), nome, custo, preco });
+            }
+            salvarDB();
+            renderizarAbaServicos();
+            limparFormPreco();
+        }
+
+        function editarPreco(id) {
+            const preco = db.precos.find(p => p.id == id);
+            document.getElementById('form-preco-titulo').textContent = "Editar Serviço";
+            document.getElementById('preco-id').value = preco.id;
+            document.getElementById('preco-nome').value = preco.nome;
+            document.getElementById('preco-custo').value = preco.custo;
+            document.getElementById('preco-preco').value = preco.preco;
+        }
+
+        function excluirPreco(id) {
+            if (confirm("Tem certeza que deseja excluir este serviço da tabela de preços?")) {
+                db.precos = db.precos.filter(p => p.id != id);
+                salvarDB();
+                renderizarAbaServicos();
             }
         }
         
-        // --- NOVAS FUNÇÕES PARA SELEÇÃO DE CLIENTE E FINALIZAÇÃO ---
-
-        function abrirModalClientes() {
-            document.getElementById('modal-clientes').style.display = 'flex';
-            document.getElementById('filtro-modal-clientes').value = '';
-            renderizarListaModalClientes();
-            document.getElementById('filtro-modal-clientes').focus();
+        function limparFormPreco() {
+            document.getElementById('form-preco-titulo').textContent = "Novo Serviço";
+            document.getElementById('preco-id').value = '';
+            document.getElementById('preco-nome').value = '';
+            document.getElementById('preco-custo').value = '';
+            document.getElementById('preco-preco').value = '';
         }
-
-        function fecharModalClientes() {
-            document.getElementById('modal-clientes').style.display = 'none';
-        }
-
-        function renderizarListaModalClientes() {
-            const filtro = document.getElementById('filtro-modal-clientes').value.toLowerCase();
-            const lista = document.getElementById('lista-modal-clientes');
+        
+        // --- ABA INSUMOS ---
+        function renderizarAbaInsumos() {
+            const lista = document.getElementById('lista-insumos');
             lista.innerHTML = '';
-            const clientesFiltrados = clientes.filter(c => c.nome.toLowerCase().includes(filtro));
-            clientesFiltrados.forEach(cliente => {
-                const item = document.createElement('li');
-                item.textContent = cliente.nome;
-                item.onclick = () => selecionarClienteParaOrcamento(cliente.id, cliente.nome);
-                lista.appendChild(item);
+            db.insumos.forEach(i => {
+                lista.innerHTML += `
+                    <div class="item-lista">
+                        <span>${i.nome} - R$ ${i.custo.toFixed(2)}</span>
+                        <div>
+                            <button class="btn btn-danger btn-sm" onclick="excluirInsumo('${i.id}')">Excluir</button>
+                        </div>
+                    </div>`;
             });
         }
         
-        function selecionarClienteParaOrcamento(id, nome) {
-            clienteSelecionadoId = id;
-            const display = document.getElementById('cliente-selecionado-display');
-            display.textContent = `Cliente: ${nome}`;
-            document.getElementById('cliente-orcamento-container').classList.add('selecionado');
-            fecharModalClientes();
+        function salvarInsumo() {
+            const nome = document.getElementById('insumo-nome').value.trim();
+            const custo = parseFloat(document.getElementById('insumo-custo').value);
+            if (!nome || isNaN(custo)) { alert("Preencha os campos corretamente."); return; }
+            db.insumos.push({ id: 'insumo_' + Date.now(), nome, custo });
+            salvarDB();
+            renderizarAbaInsumos();
+            document.getElementById('insumo-nome').value = '';
+            document.getElementById('insumo-custo').value = '';
+        }
+
+        function excluirInsumo(id) {
+            if(confirm("Deseja excluir este insumo?")) {
+                db.insumos = db.insumos.filter(i => i.id != id);
+                salvarDB();
+                renderizarAbaInsumos();
+            }
+        }
+        
+        // --- ABA RECEBIMENTOS ---
+        function renderizarAbaRecebimentos() {
+            const container = document.getElementById('resumo-recebimentos');
+            const servicosFinalizados = db.servicos.filter(s => s.status === 'Finalizado');
+            
+            if(servicosFinalizados.length === 0) {
+                container.innerHTML = "<p>Nenhum recebimento registrado ainda.</p>";
+                return;
+            }
+            
+            const totalRecebido = servicosFinalizados.reduce((acc, s) => acc + s.valorRecebido, 0);
+            const custoTotal = servicosFinalizados.reduce((acc, s) => acc + s.custoTotal, 0);
+            const lucroTotal = totalRecebido - custoTotal;
+            
+            const porMetodo = servicosFinalizados.reduce((acc, s) => {
+                const metodo = s.metodoPagamento || 'Não especificado';
+                if (!acc[metodo]) acc[metodo] = 0;
+                acc[metodo] += s.valorRecebido;
+                return acc;
+            }, {});
+            
+            let resumoMetodoHtml = '<h3>Recebimentos por Método</h3>';
+            for (const metodo in porMetodo) {
+                resumoMetodoHtml += `<p>${metodo}: <strong>R$ ${porMetodo[metodo].toFixed(2)}</strong></p>`;
+            }
+
+            container.innerHTML = `
+                <div class="resumo-financeiro">
+                    <p>Total Recebido: <span>R$ ${totalRecebido.toFixed(2)}</span></p>
+                    <p>Custo Total dos Serviços: <span>R$ ${custoTotal.toFixed(2)}</span></p>
+                    <p style="color: #28a745;">Lucro Total: <span>R$ ${lucroTotal.toFixed(2)}</span></p>
+                </div>
+                <hr>
+                ${resumoMetodoHtml}
+            `;
+        }
+
+        // --- MODAIS E FUNÇÕES AUXILIARES ---
+        function abrirModalSelecaoCliente() {
+            abrirModal('modal-selecionar-cliente');
+            renderizarListaModalClientes('');
+        }
+        
+        function renderizarListaModalClientes(filtro) {
+            const lista = document.getElementById('lista-modal-clientes');
+            lista.innerHTML = '';
+            db.clientes.filter(c => c.nome.toLowerCase().includes(filtro.toLowerCase())).forEach(cliente => {
+                lista.innerHTML += `<div class="servico-item" style="cursor: pointer;" onclick="selecionarClienteParaOrcamento('${cliente.id}')">${cliente.nome}</div>`;
+            });
+        }
+        
+        function selecionarClienteParaOrcamento(clienteId) {
+            clienteSelecionadoOrcamento = db.clientes.find(c => c.id === clienteId);
+            const aviso = document.getElementById('cliente-orcamento-aviso');
+            document.getElementById('cliente-selecionado-texto').textContent = clienteSelecionadoOrcamento.nome;
+            aviso.classList.add('selecionado');
+            document.getElementById('selecionar-cliente-btn').classList.remove('btn-danger');
+            document.getElementById('selecionar-cliente-btn').classList.add('btn-success');
+            fecharModal('modal-selecionar-cliente');
         }
 
         function abrirModalFinalizar(servicoId, total) {
             document.getElementById('servico-id-modal').value = servicoId;
             document.getElementById('total-pedido-modal').textContent = `R$ ${total.toFixed(2)}`;
-            
-            const selectPagamento = document.getElementById('metodo-pagamento-modal');
-            selectPagamento.innerHTML = '';
-            configuracoes.metodosPagamento.forEach(metodo => {
-                selectPagamento.innerHTML += `<option value="${metodo}">${metodo}</option>`;
+            const select = document.getElementById('metodo-pagamento-modal');
+            select.innerHTML = '';
+            db.configuracoes.metodosPagamento.forEach(metodo => {
+                select.innerHTML += `<option value="${metodo}">${metodo}</option>`;
             });
-
             document.getElementById('valor-recebido-modal').value = total.toFixed(2);
-            document.getElementById('modal-finalizar').style.display = 'flex';
-        }
-        
-        function fecharModalFinalizar() {
-            document.getElementById('modal-finalizar').style.display = 'none';
+            abrirModal('modal-finalizar-pedido');
         }
 
         function confirmarFinalizacao() {
@@ -607,25 +571,59 @@
             const metodo = document.getElementById('metodo-pagamento-modal').value;
             const valor = parseFloat(document.getElementById('valor-recebido-modal').value);
 
-            if (isNaN(valor)) {
-                alert('Por favor, insira um valor recebido válido.');
-                return;
-            }
+            if (isNaN(valor)) { alert('Insira um valor recebido válido.'); return; }
 
-            const index = servicos.findIndex(s => s.id === servicoId);
+            const index = db.servicos.findIndex(s => s.id === servicoId);
             if (index !== -1) {
-                servicos[index].status = 'Finalizado';
-                servicos[index].metodoPagamento = metodo;
-                servicos[index].valorRecebido = valor;
-
-                localStorage.setItem('servicos', JSON.stringify(servicos));
-                
-                fecharModalFinalizar();
-                renderizarClientes(); // Atualiza a tela para mostrar a mudança de status
+                db.servicos[index].status = 'Finalizado';
+                db.servicos[index].metodoPagamento = metodo;
+                db.servicos[index].valorRecebido = valor;
+                salvarDB();
+                fecharModal('modal-finalizar-pedido');
+                renderizarAbaClientes();
+                renderizarAbaRecebimentos(); // Atualiza o painel de recebimentos
             } else {
-                alert('Erro: não foi possível encontrar o serviço.');
+                alert('Erro: serviço não encontrado.');
             }
         }
+        
+        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        // --- BOTÕES DE COMPARTILHAR E BAIXAR ---
+        function baixarImagemOrcamento() {
+            const node = document.getElementById('orcamento-para-imagem');
+            html2canvas(node, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `orcamento-${clienteSelecionadoOrcamento?.nome || 'sem-cliente'}-${new Date().toLocaleDateString()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+        
+        async function compartilharOrcamento() {
+            const resumoItens = servicosAdicionados.map(s => `- ${s.nome}: R$ ${s.preco.toFixed(2)}`).join('\n');
+            const precoTotal = servicosAdicionados.reduce((acc, s) => acc + s.preco, 0);
+            
+            const textoCompartilhar = `Olá, ${clienteSelecionadoOrcamento?.nome || 'cliente'}!\n\nSegue o seu orçamento:\n\n${resumoItens}\n\n*Total: R$ ${precoTotal.toFixed(2)}*\n\nAtenciosamente,\nClean Master`;
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Orçamento Clean Master',
+                        text: textoCompartilhar,
+                    });
+                } catch (err) {
+                    console.error("Erro ao compartilhar:", err);
+                }
+            } else {
+                // Fallback para computadores sem API de compartilhamento
+                navigator.clipboard.writeText(textoCompartilhar).then(() => {
+                    alert("Orçamento copiado para a área de transferência!");
+                });
+            }
+        }
+
     </script>
 </body>
 </html>
