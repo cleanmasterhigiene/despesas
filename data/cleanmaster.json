@@ -49,6 +49,35 @@
       ]
     }
   ],
-  "clientes": [],
-  "servicosPrestados": []
+  "clientes": [
+    {
+      "id": 1753269954516,
+      "nome": "Alex Lopes de oliveira"
+    }
+  ],
+  "servicosPrestados": [
+    {
+      "id": 1753269954516,
+      "data": "2025-07-23",
+      "clienteId": 1753269954516,
+      "clienteNome": "Alex Lopes de oliveira",
+      "servicos": [
+        {
+          "servicoPadraoId": 1753269904260,
+          "nome": "teste sofa 2",
+          "custo": 40,
+          "preco": 80
+        },
+        {
+          "servicoPadraoId": 1753269845588,
+          "nome": "teste sofa 123",
+          "custo": 40,
+          "preco": 100
+        }
+      ],
+      "custoTotal": 80,
+      "precoTotal": 180,
+      "lucroTotal": 100
+    }
+  ]
 }
