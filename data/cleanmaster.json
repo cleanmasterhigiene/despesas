@@ -1,14 +1,4 @@
 {
-  "insumos": [
-    {
-      "id": 1692734280138,
-      "nome": "WAP Detergente",
-      "unidadeMedida": "L",
-      "quantidadeTotal": 5,
-      "precoTotal": 100,
-      "custoPorUnidade": 20
-    }
-{
   "insumos": [],
   "servicosPadrao": [],
   "clientes": [],
