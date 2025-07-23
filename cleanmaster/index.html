@@ -171,7 +171,6 @@
         let db = {};
         let servicosAdicionados = [];
         let clienteSelecionadoOrcamento = null;
-        // Adiciona um parâmetro aleatório para evitar o cache do navegador/GitHub Pages
         const GITHUB_URL = 'https://raw.githubusercontent.com/cleanmasterhigiene/despesas/main/data/cleanmaster.json?cache_bust=' + Date.now();
 
         document.addEventListener('DOMContentLoaded', carregarDadosIniciais);
@@ -193,8 +192,9 @@
                     console.log("Dados carregados do GitHub.");
                 }
                 
-                db = migrarEValidarDados(dadosCarregados);
-                salvarDB(); // Salva a versão corrigida no localStorage
+                // A função de migração foi removida, pois agora o JSON já está no formato correto
+                db = validarDados(dadosCarregados);
+                salvarDB(); // Garante que a versão validada está no localStorage
                 iniciarApp();
 
             } catch (error) {
@@ -205,50 +205,14 @@
             }
         }
 
-        function migrarEValidarDados(dados) {
-            // Garante que o objeto base e suas chaves existam
+        function validarDados(dados) {
+            // Garante que a estrutura mínima exista para evitar erros
             if (!dados) dados = {};
             if (!dados.clientes) dados.clientes = [];
             if (!dados.servicos) dados.servicos = [];
             if (!dados.precos) dados.precos = [];
             if (!dados.insumos) dados.insumos = [];
             if (!dados.configuracoes) dados.configuracoes = { metodosPagamento: ['Dinheiro', 'Pix', 'Cartão'] };
-
-            // 1. Migra CLIENTES de string para objeto
-            if (dados.clientes.length > 0 && typeof dados.clientes[0] === 'string') {
-                console.log("MIGRANDO clientes de string para objeto.");
-                dados.clientes = dados.clientes.map(nomeCliente => ({
-                    id: 'cliente_' + Math.random().toString(36).substr(2, 9),
-                    nome: nomeCliente, telefone: '', endereco: ''
-                }));
-            }
-
-            // 2. Migra e valida SERVIÇOS
-            const precosMap = new Map((dados.precos || []).map(p => [p.nome, p]));
-            dados.servicos.forEach(s => {
-                if (!s.id) s.id = 'servico_' + Date.now() + Math.random();
-                if (!s.clienteId && s.cliente) {
-                    const clienteObj = dados.clientes.find(c => c.nome === s.cliente);
-                    if (clienteObj) s.clienteId = clienteObj.id;
-                }
-                if (Array.isArray(s.itens)) { // Converte a estrutura antiga de itens
-                    s.precoTotal = s.total; // Usa o total antigo
-                    s.custoTotal = s.itens.reduce((acc, item) => {
-                        const precoInfo = precosMap.get(item.nome);
-                        return acc + (precoInfo ? precoInfo.custo : 0);
-                    }, 0);
-                    s.itens = s.itens.map(item => item.nome).join(', '); // Converte para string
-                }
-                // Garante que os campos de finalização existam
-                if (s.status === undefined) s.status = 'A Receber';
-                if (s.metodoPagamento === undefined) s.metodoPagamento = null;
-                if (s.valorRecebido === undefined) s.valorRecebido = null;
-            });
-            
-            // 3. Valida PRECOS e INSUMOS
-            (dados.precos || []).forEach(p => { if (!p.id) p.id = 'preco_' + Date.now() + Math.random(); });
-            (dados.insumos || []).forEach(i => { if (!i.id) i.id = 'insumo_' + Date.now() + Math.random(); });
-            
             return dados;
         }
         
@@ -431,106 +395,4 @@
             salvarDB();
             renderizarAbaInsumos();
             document.getElementById('insumo-nome').value = '';
-            document.getElementById('insumo-custo').value = '';
-        }
-        function excluirInsumo(id) {
-            if(confirm("Excluir este insumo?")) {
-                db.insumos = db.insumos.filter(i => i.id != id);
-                salvarDB();
-                renderizarAbaInsumos();
-            }
-        }
-        
-        // --- ABA RECEBIMENTOS ---
-        function renderizarAbaRecebimentos() {
-            const container = document.getElementById('resumo-recebimentos');
-            const servicosFinalizados = (db.servicos || []).filter(s => s.status === 'Finalizado');
-            if(servicosFinalizados.length === 0) { container.innerHTML = "<p>Nenhum recebimento registrado.</p>"; return; }
-            const totalRecebido = servicosFinalizados.reduce((acc, s) => acc + (s.valorRecebido || 0), 0);
-            const custoTotal = servicosFinalizados.reduce((acc, s) => acc + (s.custoTotal || 0), 0);
-            const lucroTotal = totalRecebido - custoTotal;
-            const porMetodo = servicosFinalizados.reduce((acc, s) => {
-                const metodo = s.metodoPagamento || 'Não especificado';
-                acc[metodo] = (acc[metodo] || 0) + (s.valorRecebido || 0);
-                return acc;
-            }, {});
-            let resumoMetodoHtml = '<h3>Recebimentos por Método</h3>';
-            for (const metodo in porMetodo) {
-                resumoMetodoHtml += `<p>${metodo}: <strong>R$ ${porMetodo[metodo].toFixed(2)}</strong></p>`;
-            }
-            container.innerHTML = `<div class="resumo-financeiro"><p>Total Recebido: <span>R$ ${totalRecebido.toFixed(2)}</span></p><p>Custo Total: <span>R$ ${custoTotal.toFixed(2)}</span></p><p style="color: #28a745;">Lucro Total: <span>R$ ${lucroTotal.toFixed(2)}</span></p></div><hr>${resumoMetodoHtml}`;
-        }
-
-        // --- MODAIS E FUNÇÕES AUXILIARES ---
-        function abrirModalSelecaoCliente() {
-            abrirModal('modal-selecionar-cliente');
-            renderizarListaModalClientes('');
-        }
-        function renderizarListaModalClientes(filtro) {
-            const lista = document.getElementById('lista-modal-clientes');
-            lista.innerHTML = '';
-            (db.clientes || []).filter(c => c.nome.toLowerCase().includes(filtro.toLowerCase())).forEach(cliente => {
-                lista.innerHTML += `<div class="item-lista" style="cursor: pointer;" onclick="selecionarClienteParaOrcamento('${cliente.id}')">${cliente.nome}</div>`;
-            });
-        }
-        function selecionarClienteParaOrcamento(clienteId) {
-            clienteSelecionadoOrcamento = db.clientes.find(c => c.id === clienteId);
-            const aviso = document.getElementById('cliente-orcamento-aviso');
-            document.getElementById('cliente-selecionado-texto').textContent = clienteSelecionadoOrcamento.nome;
-            aviso.classList.add('selecionado');
-            fecharModal('modal-selecionar-cliente');
-        }
-        function abrirModalFinalizar(servicoId, total) {
-            document.getElementById('servico-id-modal').value = servicoId;
-            document.getElementById('total-pedido-modal').textContent = `R$ ${total.toFixed(2)}`;
-            const select = document.getElementById('metodo-pagamento-modal');
-            select.innerHTML = '';
-            (db.configuracoes.metodosPagamento || []).forEach(metodo => {
-                select.innerHTML += `<option value="${metodo}">${metodo}</option>`;
-            });
-            document.getElementById('valor-recebido-modal').value = total.toFixed(2);
-            abrirModal('modal-finalizar-pedido');
-        }
-        function confirmarFinalizacao() {
-            const servicoId = document.getElementById('servico-id-modal').value;
-            const metodo = document.getElementById('metodo-pagamento-modal').value;
-            const valor = parseFloat(document.getElementById('valor-recebido-modal').value);
-            if (isNaN(valor)) { alert('Insira um valor recebido válido.'); return; }
-            const index = db.servicos.findIndex(s => s.id === servicoId);
-            if (index !== -1) {
-                db.servicos[index].status = 'Finalizado';
-                db.servicos[index].metodoPagamento = metodo;
-                db.servicos[index].valorRecebido = valor;
-                salvarDB();
-                fecharModal('modal-finalizar-pedido');
-                renderizarAbaClientes();
-                renderizarAbaRecebimentos();
-            }
-        }
-        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
-        
-        // --- BOTÕES DE COMPARTILHAR E BAIXAR ---
-        function baixarImagemOrcamento() {
-            const node = document.getElementById('orcamento-para-imagem');
-            html2canvas(node, { scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `orcamento-${clienteSelecionadoOrcamento?.nome || 'sem-cliente'}-${new Date().toLocaleDateString()}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            });
-        }
-        async function compartilharOrcamento() {
-            const precoTotal = servicosAdicionados.reduce((acc, s) => acc + s.preco, 0);
-            const textoCompartilhar = `Olá, ${clienteSelecionadoOrcamento?.nome || 'cliente'}! Segue o seu orçamento: Total: R$ ${precoTotal.toFixed(2)}. Atenciosamente, Clean Master`;
-            if (navigator.share) {
-                try {
-                    await navigator.share({ title: 'Orçamento Clean Master', text: textoCompartilhar });
-                } catch (err) { console.error("Erro ao compartilhar:", err); }
-            } else {
-                navigator.clipboard.writeText(textoCompartilhar).then(() => alert("Orçamento copiado para a área de transferência!"));
-            }
-        }
-    </script>
-</body>
-</html>
+            document.
