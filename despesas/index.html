@@ -223,7 +223,6 @@
         // --- FUNÇÕES DE DADOS COM FIREBASE ---
         function iniciarBancoDeDadosParaUsuario(userId) {
             const dadosIniciais = { despesas: [] };
-            // Usa uma coleção diferente para o app de despesas
             firestore.collection('usuarios_despesas').doc(userId).set(dadosIniciais)
                 .catch(error => console.error("Erro ao criar documento inicial: ", error));
         }
