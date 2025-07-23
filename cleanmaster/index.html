@@ -9,16 +9,23 @@
     <style>
         :root { --cor-principal: #279AF1; --cor-sucesso: #28a745; --cor-perigo: #dc3545; --cor-aviso: #ffc107; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f4f8; color: #333; }
+        .container { padding: 20px; max-width: 800px; margin: 0 auto; }
+        .form-section { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .form-section h2 { margin-top: 0; }
+        input, select, button { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 1em; }
+        button { background-color: var(--cor-principal); color: white; border: none; cursor: pointer; }
+        button:hover { opacity: 0.9; }
+        #login-container, #app-container { display: none; }
         .header { background-color: var(--cor-principal); color: white; padding: 15px 20px; text-align: center; font-size: 1.5em; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        .header-com-logout { display: flex; justify-content: space-between; align-items: center; }
+        #logout-btn { background: var(--cor-perigo); padding: 8px 12px; font-size: 0.8em; width: auto; margin-bottom: 0; }
         .tabs { display: flex; justify-content: center; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
         .tab-button { padding: 15px 25px; cursor: pointer; border: none; background-color: transparent; font-size: 1em; border-bottom: 3px solid transparent; transition: all 0.3s ease; }
         .tab-button.active { border-bottom: 3px solid var(--cor-principal); color: var(--cor-principal); font-weight: bold; }
         .tab-content { display: none; padding: 20px; max-width: 800px; margin: 20px auto; }
         .tab-content.active { display: block; }
-        .form-section { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 20px; }
         #orcamento-para-imagem { background-color: white; }
         .form-section h2, .form-section h3 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; color: var(--cor-principal); }
-        select, input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1em; }
         .input-group { display: flex; gap: 10px; }
         .btn { display: inline-block; text-align: center; vertical-align: middle; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; transition: background-color 0.2s ease; }
         .btn-primary { background-color: var(--cor-principal); color: white; }
@@ -53,206 +60,293 @@
 </head>
 
 <body>
-    <div class="header">Clean Master</div>
-    <div class="tabs">
-        <button class="tab-button active" onclick="abrirTab('orcamento')">Orçamento</button>
-        <button class="tab-button" onclick="abrirTab('clientes')">Clientes</button>
-        <button class="tab-button" onclick="abrirTab('servicos')">Serviços</button>
-        <button class="tab-button" onclick="abrirTab('insumos')">Insumos</button>
-        <button class="tab-button" onclick="abrirTab('recebimentos')">Recebimentos</button>
+    <!-- TELA DE LOGIN -->
+    <div id="login-container" class="container">
+        <div class="form-section">
+            <h2>Login - Clean Master</h2>
+            <input type="email" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-senha" placeholder="Senha" required>
+            <button id="btn-login">Entrar</button>
+            <p>Não tem uma conta? <a href="#" id="link-cadastro">Cadastre-se</a></p>
+        </div>
+        <div class="form-section" id="cadastro-section" style="display:none;">
+            <h2>Cadastro</h2>
+            <input type="email" id="cadastro-email" placeholder="Email" required>
+            <input type="password" id="cadastro-senha" placeholder="Senha (mínimo 6 caracteres)" required>
+            <button id="btn-cadastrar">Cadastrar</button>
+            <p>Já tem uma conta? <a href="#" id="link-login">Faça Login</a></p>
+        </div>
     </div>
 
-    <div id="orcamento" class="tab-content active">
-        <div id="orcamento-para-imagem">
-            <div class="form-section">
-                <h2>1. Cliente</h2>
-                <div id="cliente-orcamento-aviso" class="cliente-orcamento-aviso">
-                    <span id="cliente-selecionado-texto">Selecione ou cadastre um cliente</span>
-                    <button class="btn btn-primary" onclick="abrirModalSelecaoCliente()">Selecionar</button>
-                </div>
-            </div>
-            <div class="form-section">
-                <h2>2. Serviços</h2>
-                <select id="servico-select"></select>
-                <button class="btn btn-primary" onclick="adicionarServicoOrcamento()">Adicionar</button>
-                <div id="lista-servicos-adicionados"></div>
-            </div>
-            <div class="form-section">
-                <h2>3. Resumo Financeiro</h2>
-                <div class="resumo-financeiro">
-                    <p>Custo Total: <span id="custo-total">R$ 0.00</span></p>
-                    <p>Preço Total: <span id="preco-total">R$ 0.00</span></p>
-                    <p style="color: #28a745;">Lucro Total: <span id="lucro-total">R$ 0.00</span></p>
-                </div>
-            </div>
+    <!-- APLICAÇÃO PRINCIPAL -->
+    <div id="app-container">
+        <div class="header header-com-logout">
+            <h1>Clean Master</h1>
+            <button id="logout-btn">Sair</button>
         </div>
-        <input type="date" id="data-servico" style="margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; gap: 10px;">
-            <button class="btn btn-primary" style="flex: 1;" onclick="baixarImagemOrcamento()">Baixar Imagem</button>
-            <button class="btn btn-success" style="flex: 1;" onclick="compartilharOrcamento()">Compartilhar</button>
+        <div class="tabs">
+            <button class="tab-button active" onclick="abrirTab('orcamento')">Orçamento</button>
+            <button class="tab-button" onclick="abrirTab('clientes')">Clientes</button>
+            <button class="tab-button" onclick="abrirTab('servicos')">Serviços</button>
+            <button class="tab-button" onclick="abrirTab('insumos')">Insumos</button>
+            <button class="tab-button" onclick="abrirTab('recebimentos')">Recebimentos</button>
         </div>
-        <button class="btn btn-success" onclick="salvarServico()" style="width: 100%; margin-top: 10px;">Salvar Serviço</button>
-    </div>
 
-    <div id="clientes" class="tab-content">
-        <div class="form-section">
-            <h2>Meus Clientes</h2>
-            <input type="text" id="filtro-clientes" placeholder="Filtrar clientes..." onkeyup="renderizarAbaClientes()">
-            <div id="lista-clientes"></div>
-        </div>
-        <div class="form-section">
-            <h2 id="form-cliente-titulo">Novo Cliente</h2>
-            <input type="hidden" id="cliente-id">
-            <input type="text" id="nome-cliente" placeholder="Nome do cliente">
-            <input type="text" id="telefone-cliente" placeholder="Telefone (opcional)">
-            <input type="text" id="endereco-cliente" placeholder="Endereço (opcional)">
-            <button id="btn-salvar-cliente" class="btn btn-primary" onclick="salvarCliente()">Salvar Cliente</button>
-            <button id="btn-cancelar-edicao-cliente" class="btn" style="display: none; margin-left: 10px;" onclick="limparFormCliente()">Cancelar</button>
-        </div>
-    </div>
-    
-    <div id="servicos" class="tab-content">
-        <div class="form-section">
-            <h2>Meus Serviços (Tabela de Preços)</h2>
-            <div id="lista-precos"></div>
-        </div>
-        <div class="form-section">
-            <h2 id="form-preco-titulo">Novo Serviço</h2>
-            <input type="hidden" id="preco-id">
-            <input type="text" id="preco-nome" placeholder="Nome do serviço (ex: Limpeza de Sofá 3 Lugares)">
-            
-            <div class="input-group">
-                <input type="number" id="preco-despesas" placeholder="Despesas Extras (R$)">
-                <input type="number" id="preco-imposto" placeholder="Imposto (%)">
+        <div id="orcamento" class="tab-content active">
+            <div id="orcamento-para-imagem">
+                <div class="form-section">
+                    <h2>1. Cliente</h2>
+                    <div id="cliente-orcamento-aviso" class="cliente-orcamento-aviso">
+                        <span id="cliente-selecionado-texto">Selecione ou cadastre um cliente</span>
+                        <button class="btn btn-primary" onclick="abrirModalSelecaoCliente()">Selecionar</button>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h2>2. Serviços</h2>
+                    <select id="servico-select"></select>
+                    <button class="btn btn-primary" onclick="adicionarServicoOrcamento()">Adicionar</button>
+                    <div id="lista-servicos-adicionados"></div>
+                </div>
+                <div class="form-section">
+                    <h2>3. Resumo Financeiro</h2>
+                    <div class="resumo-financeiro">
+                        <p>Custo Total: <span id="custo-total">R$ 0.00</span></p>
+                        <p>Preço Total: <span id="preco-total">R$ 0.00</span></p>
+                        <p style="color: #28a745;">Lucro Total: <span id="lucro-total">R$ 0.00</span></p>
+                    </div>
+                </div>
             </div>
-            <input type="text" id="preco-tempo" placeholder="Tempo de Execução (ex: 2 horas)">
-            <input type="number" id="preco-preco" placeholder="Preço de Venda (ex: 200.00)">
-            
-            <div class="form-section" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9;">
-                <h3>Insumos Utilizados no Serviço</h3>
+            <input type="date" id="data-servico" style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; gap: 10px;">
+                <button class="btn btn-primary" style="flex: 1;" onclick="baixarImagemOrcamento()">Baixar Imagem</button>
+                <button class="btn btn-success" style="flex: 1;" onclick="compartilharOrcamento()">Compartilhar</button>
+            </div>
+            <button class="btn btn-success" onclick="salvarServico()" style="width: 100%; margin-top: 10px;">Salvar Serviço</button>
+        </div>
+
+        <div id="clientes" class="tab-content">
+            <div class="form-section">
+                <h2>Meus Clientes</h2>
+                <input type="text" id="filtro-clientes" placeholder="Filtrar clientes..." onkeyup="renderizarAbaClientes()">
+                <div id="lista-clientes"></div>
+            </div>
+            <div class="form-section">
+                <h2 id="form-cliente-titulo">Novo Cliente</h2>
+                <input type="hidden" id="cliente-id">
+                <input type="text" id="nome-cliente" placeholder="Nome do cliente">
+                <input type="text" id="telefone-cliente" placeholder="Telefone (opcional)">
+                <input type="text" id="endereco-cliente" placeholder="Endereço (opcional)">
+                <button id="btn-salvar-cliente" class="btn btn-primary" onclick="salvarCliente()">Salvar Cliente</button>
+                <button id="btn-cancelar-edicao-cliente" class="btn" style="display: none; margin-left: 10px;" onclick="limparFormCliente()">Cancelar</button>
+            </div>
+        </div>
+        
+        <div id="servicos" class="tab-content">
+            <div class="form-section">
+                <h2>Meus Serviços (Tabela de Preços)</h2>
+                <div id="lista-precos"></div>
+            </div>
+            <div class="form-section">
+                <h2 id="form-preco-titulo">Novo Serviço</h2>
+                <input type="hidden" id="preco-id">
+                <input type="text" id="preco-nome" placeholder="Nome do serviço (ex: Limpeza de Sofá 3 Lugares)">
                 <div class="input-group">
-                    <select id="insumo-para-servico-select" style="flex: 2;"></select>
-                    <input type="number" id="insumo-para-servico-qtd" placeholder="Qtd" style="flex: 1;">
-                    <button class="btn btn-primary" onclick="adicionarInsumoAoServico()">+</button>
+                    <input type="number" id="preco-despesas" placeholder="Despesas Extras (R$)">
+                    <input type="number" id="preco-imposto" placeholder="Imposto (%)">
                 </div>
-                <div id="lista-insumos-para-servico"></div>
+                <input type="text" id="preco-tempo" placeholder="Tempo de Execução (ex: 2 horas)">
+                <input type="number" id="preco-preco" placeholder="Preço de Venda (ex: 200.00)">
+                <div class="form-section" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9;">
+                    <h3>Insumos Utilizados no Serviço</h3>
+                    <div class="input-group">
+                        <select id="insumo-para-servico-select" style="flex: 2;"></select>
+                        <input type="number" id="insumo-para-servico-qtd" placeholder="Qtd" style="flex: 1;">
+                        <button class="btn btn-primary" onclick="adicionarInsumoAoServico()">+</button>
+                    </div>
+                    <div id="lista-insumos-para-servico"></div>
+                </div>
+                <button class="btn btn-primary" onclick="salvarPreco()">Salvar Serviço</button>
+                <button class="btn" onclick="limparFormPreco()">Cancelar</button>
             </div>
-            
-            <button class="btn btn-primary" onclick="salvarPreco()">Salvar Serviço</button>
-            <button class="btn" onclick="limparFormPreco()">Cancelar</button>
         </div>
-    </div>
-    
-    <div id="insumos" class="tab-content">
-        <div class="form-section">
-            <h2>Meus Insumos</h2>
-            <div id="lista-insumos"></div>
-        </div>
-        <div class="form-section">
-            <h2 id="form-insumo-titulo">Novo Insumo</h2>
-            <input type="hidden" id="insumo-id">
-            <input type="text" id="insumo-nome" placeholder="Nome do insumo (ex: Galão de Limpador)">
-            <div class="input-group">
-                <input type="number" id="insumo-custo-total" placeholder="Custo Total (R$)">
-                <input type="number" id="insumo-qtd-total" placeholder="Quantidade Total">
-                <input type="text" id="insumo-unidade" placeholder="Unidade (L, kg, un)">
+        
+        <div id="insumos" class="tab-content">
+            <div class="form-section">
+                <h2>Meus Insumos</h2>
+                <div id="lista-insumos"></div>
             </div>
-            <button class="btn btn-primary" onclick="salvarInsumo()">Salvar Insumo</button>
-        </div>
-    </div>
-    
-    <div id="recebimentos" class="tab-content">
-        <div class="form-section">
-            <div class="navegacao-mes">
-                <button class="btn btn-primary btn-sm" onclick="mudarMesRecebimentos(-1)">&lt; Anterior</button>
-                <h2 id="mes-ano-recebimentos"></h2>
-                <button class="btn btn-primary btn-sm" onclick="mudarMesRecebimentos(1)">Próximo &gt;</button>
+            <div class="form-section">
+                <h2 id="form-insumo-titulo">Novo Insumo</h2>
+                <input type="hidden" id="insumo-id">
+                <input type="text" id="insumo-nome" placeholder="Nome do insumo (ex: Galão de Limpador)">
+                <div class="input-group">
+                    <input type="number" id="insumo-custo-total" placeholder="Custo Total (R$)">
+                    <input type="number" id="insumo-qtd-total" placeholder="Quantidade Total">
+                    <input type="text" id="insumo-unidade" placeholder="Unidade (L, kg, un)">
+                </div>
+                <button class="btn btn-primary" onclick="salvarInsumo()">Salvar Insumo</button>
             </div>
-            <div id="resumo-recebimentos"></div>
         </div>
-        <div class="form-section">
-            <h2>Resumo por Serviço (Geral)</h2>
-            <div id="resumo-por-servico"></div>
+        
+        <div id="recebimentos" class="tab-content">
+            <div class="form-section">
+                <div class="navegacao-mes">
+                    <button class="btn btn-primary btn-sm" onclick="mudarMesRecebimentos(-1)">&lt; Anterior</button>
+                    <h2 id="mes-ano-recebimentos"></h2>
+                    <button class="btn btn-primary btn-sm" onclick="mudarMesRecebimentos(1)">Próximo &gt;</button>
+                </div>
+                <div id="resumo-recebimentos"></div>
+            </div>
+            <div class="form-section">
+                <h2>Resumo por Serviço (Geral)</h2>
+                <div id="resumo-por-servico"></div>
+            </div>
+        </div>
+
+        <!-- MODAIS -->
+        <div id="modal-selecionar-cliente" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Selecione um Cliente</h2>
+                    <span class="close-button" onclick="fecharModal('modal-selecionar-cliente')">&times;</span>
+                </div>
+                <input type="text" placeholder="Filtrar..." onkeyup="renderizarListaModalClientes(this.value)">
+                <div id="lista-modal-clientes" style="max-height: 400px; overflow-y: auto;"></div>
+            </div>
+        </div>
+
+        <div id="modal-finalizar-pedido" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Finalizar Pedido</h2>
+                    <span class="close-button" onclick="fecharModal('modal-finalizar-pedido')">&times;</span>
+                </div>
+                <p>Total do Pedido: <strong id="total-pedido-modal">R$ 0.00</strong></p>
+                <input type="hidden" id="servico-id-modal">
+                <label>Método de Pagamento:</label>
+                <select id="metodo-pagamento-modal" onchange="togglePagamentoDetalhes()"></select>
+                <div id="pagamento-detalhes-parcelado">
+                    <label>Número de Parcelas:</label>
+                    <input type="number" id="numero-parcelas" placeholder="2" value="2">
+                </div>
+                <div id="pagamento-detalhes-cheque">
+                    <label>Data de Compensação:</label>
+                    <input type="date" id="data-compensacao-cheque">
+                </div>
+                <label>Valor Recebido (Total):</label>
+                <input type="number" id="valor-recebido-modal" placeholder="0.00">
+                <button class="btn btn-success" style="width: 100%; margin-top: 20px;" onclick="confirmarFinalizacao()">Confirmar Recebimento</button>
+            </div>
         </div>
     </div>
 
-    <div id="modal-selecionar-cliente" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Selecione um Cliente</h2>
-                <span class="close-button" onclick="fecharModal('modal-selecionar-cliente')">&times;</span>
-            </div>
-            <input type="text" placeholder="Filtrar..." onkeyup="renderizarListaModalClientes(this.value)">
-            <div id="lista-modal-clientes" style="max-height: 400px; overflow-y: auto;"></div>
-        </div>
-    </div>
-
-    <div id="modal-finalizar-pedido" class="modal">
-         <div class="modal-content">
-            <div class="modal-header">
-                <h2>Finalizar Pedido</h2>
-                <span class="close-button" onclick="fecharModal('modal-finalizar-pedido')">&times;</span>
-            </div>
-            <p>Total do Pedido: <strong id="total-pedido-modal">R$ 0.00</strong></p>
-            <input type="hidden" id="servico-id-modal">
-            <label>Método de Pagamento:</label>
-            <select id="metodo-pagamento-modal" onchange="togglePagamentoDetalhes()"></select>
-            
-            <div id="pagamento-detalhes-parcelado">
-                <label>Número de Parcelas:</label>
-                <input type="number" id="numero-parcelas" placeholder="2" value="2">
-            </div>
-            <div id="pagamento-detalhes-cheque">
-                <label>Data de Compensação:</label>
-                <input type="date" id="data-compensacao-cheque">
-            </div>
-
-            <label>Valor Recebido (Total):</label>
-            <input type="number" id="valor-recebido-modal" placeholder="0.00">
-            <button class="btn btn-success" style="width: 100%; margin-top: 20px;" onclick="confirmarFinalizacao()">Confirmar Recebimento</button>
-        </div>
-    </div>
+    <!-- SCRIPTS DO FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
+        // --- INICIALIZAÇÃO DO FIREBASE COM SUAS CHAVES ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDcvNfaFIzyuds1rytkbiz0FFTtkShHwrE",
+            authDomain: "clean-master-156d7.firebaseapp.com",
+            projectId: "clean-master-156d7",
+            storageBucket: "clean-master-156d7.appspot.com",
+            messagingSenderId: "954451890910",
+            appId: "1:954451890910:web:60baa7ffa3c5a9a7e8284f"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const firestore = firebase.firestore();
+        
         let db = {};
         let servicosAdicionados = [];
         let clienteSelecionadoOrcamento = null;
         let insumosParaServicoAtual = [];
         let mesAtualRecebimentos = new Date();
+        let unsubscribe;
 
-        const dadosIniciaisPadrao = {
-            "clientes": [], "servicos": [], "precos": [], "insumos": [],
-            "configuracoes": { "metodosPagamento": ["Dinheiro", "Pix", "Cartão de Débito", "Cartão Parcelado", "Cheque"] }
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            try {
-                const dadosLocais = localStorage.getItem('cleanMasterDB');
-                db = dadosLocais ? JSON.parse(dadosLocais) : dadosIniciaisPadrao;
-            } catch (error) {
-                console.error("Erro ao carregar dados, usando padrão.", error);
-                db = dadosIniciaisPadrao;
-            }
-            iniciarApp();
-        });
+        // --- CONTROLE DE AUTENTICAÇÃO E TELAS ---
+        const loginContainer = document.getElementById('login-container');
+        const appContainer = document.getElementById('app-container');
+        const cadastroSection = document.getElementById('cadastro-section');
         
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loginContainer.style.display = 'none';
+                appContainer.style.display = 'block';
+                carregarDadosDoUsuario(user.uid);
+            } else {
+                if (unsubscribe) unsubscribe();
+                appContainer.style.display = 'none';
+                loginContainer.style.display = 'block';
+            }
+        });
+
+        document.getElementById('link-cadastro').addEventListener('click', (e) => { e.preventDefault(); cadastroSection.style.display = 'block'; });
+        document.getElementById('link-login').addEventListener('click', (e) => { e.preventDefault(); cadastroSection.style.display = 'none'; });
+
+        // --- FUNÇÕES DE LOGIN/CADASTRO/LOGOUT ---
+        document.getElementById('btn-login').addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            const senha = document.getElementById('login-senha').value;
+            auth.signInWithEmailAndPassword(email, senha).catch(error => alert("Erro ao fazer login: " + error.message));
+        });
+
+        document.getElementById('btn-cadastrar').addEventListener('click', () => {
+            const email = document.getElementById('cadastro-email').value;
+            const senha = document.getElementById('cadastro-senha').value;
+            auth.createUserWithEmailAndPassword(email, senha)
+                .then(userCredential => iniciarBancoDeDadosParaUsuario(userCredential.user.uid))
+                .catch(error => alert("Erro ao cadastrar: " + error.message));
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+
+        // --- FUNÇÕES DE DADOS COM FIREBASE ---
+        function iniciarBancoDeDadosParaUsuario(userId) {
+            const dadosIniciais = {
+                "clientes": [], "servicos": [], "precos": [], "insumos": [],
+                "configuracoes": { "metodosPagamento": ["Dinheiro", "Pix", "Cartão de Débito", "Cartão Parcelado", "Cheque"] }
+            };
+            firestore.collection('usuarios_cleanmaster').doc(userId).set(dadosIniciais)
+                .catch(error => console.error("Erro ao criar documento inicial: ", error));
+        }
+
+        function carregarDadosDoUsuario(userId) {
+            unsubscribe = firestore.collection('usuarios_cleanmaster').doc(userId)
+                .onSnapshot((doc) => {
+                    if (doc.exists) {
+                        db = doc.data();
+                        iniciarApp();
+                    } else {
+                        iniciarBancoDeDadosParaUsuario(userId);
+                    }
+                }, (error) => {
+                    console.error("Erro ao carregar dados: ", error);
+                    alert("Erro de conexão com o banco de dados.");
+                });
+        }
+        
+        function salvarDB() {
+            const user = auth.currentUser;
+            if (user) {
+                firestore.collection('usuarios_cleanmaster').doc(user.uid).set(db)
+                    .catch(error => console.error("Erro ao salvar dados: ", error));
+            }
+        }
+        
+        // --- LÓGICA PRINCIPAL DO APP ---
         function iniciarApp() {
-            // Garante que a estrutura mínima do DB exista
             if (!db.insumos) db.insumos = [];
             if (!db.precos) db.precos = [];
             if (!db.servicos) db.servicos = [];
             if (!db.clientes) db.clientes = [];
-            if (!db.configuracoes) db.configuracoes = dadosIniciaisPadrao.configuracoes;
+            if (!db.configuracoes || !db.configuracoes.metodosPagamento) {
+                db.configuracoes = { "metodosPagamento": ["Dinheiro", "Pix", "Cartão de Débito", "Cartão Parcelado", "Cheque"] };
+            }
             
-            // CORREÇÃO: Garante que as novas formas de pagamento existam na configuração do usuário
-            const metodosPadrao = dadosIniciaisPadrao.configuracoes.metodosPagamento;
-            metodosPadrao.forEach(metodo => {
-                if (!db.configuracoes.metodosPagamento.includes(metodo)) {
-                    db.configuracoes.metodosPagamento.push(metodo);
-                }
-            });
-            salvarDB(); // Salva a configuração atualizada se necessário
-
             abrirTab('orcamento');
             popularServicosSelect();
             renderizarAbaClientes();
@@ -260,10 +354,6 @@
             renderizarAbaInsumos();
             renderizarAbaRecebimentos();
             document.getElementById('data-servico').valueAsDate = new Date();
-        }
-        
-        function salvarDB() {
-            localStorage.setItem('cleanMasterDB', JSON.stringify(db));
         }
 
         function abrirTab(nomeTab) {
@@ -691,31 +781,21 @@
                 alert("Selecione um cliente antes de gerar o orçamento.");
                 return;
             }
-            const node = document.getElementById('orcamento-para-imagem');
             const templateImg = new Image();
-            // Garante que o navegador não use uma imagem antiga do cache
-            templateImg.src = 'Orcamento.png?v=' + new Date().getTime();
-            templateImg.crossOrigin = "anonymous"; // Necessário se a imagem estiver em outro domínio no futuro
+            templateImg.src = 'https://raw.githubusercontent.com/cleanmasterhigiene/despesas/main/Orcamento.png?v=' + new Date().getTime();
+            templateImg.crossOrigin = "anonymous";
             
             templateImg.onload = () => {
                 const canvas = document.createElement('canvas');
                 canvas.width = templateImg.width;
                 canvas.height = templateImg.height;
                 const ctx = canvas.getContext('2d');
-
-                // 1. Desenha a imagem de fundo
                 ctx.drawImage(templateImg, 0, 0);
-
-                // 2. Define estilos de texto
-                ctx.fillStyle = '#333'; // Cor do texto
+                ctx.fillStyle = '#333';
                 ctx.font = '20px Arial';
-
-                // 3. Define as posições (X, Y) para desenhar o texto - ajuste se necessário
-                let yPosition = 350; // Posição Y inicial para o texto
-                const xPosition = 50;  // Posição X (margem esquerda)
-                const lineHeight = 30; // Espaçamento entre linhas
-
-                // 4. Desenha os dados do cliente
+                let yPosition = 350;
+                const xPosition = 50;
+                const lineHeight = 30;
                 ctx.font = 'bold 22px Arial';
                 ctx.fillText(`Cliente: ${clienteSelecionadoOrcamento.nome}`, xPosition, yPosition);
                 yPosition += lineHeight;
@@ -728,10 +808,7 @@
                     ctx.fillText(`Endereço: ${clienteSelecionadoOrcamento.endereco}`, xPosition, yPosition);
                     yPosition += lineHeight;
                 }
-                
-                yPosition += lineHeight; // Espaço extra
-
-                // 5. Desenha os serviços
+                yPosition += lineHeight;
                 ctx.font = 'bold 22px Arial';
                 ctx.fillText('Serviços Contratados:', xPosition, yPosition);
                 yPosition += lineHeight;
@@ -743,24 +820,19 @@
                     ctx.fillText(precoTexto, canvas.width - xPosition - precoLargura, yPosition);
                     yPosition += lineHeight;
                 });
-
-                // 6. Desenha os totais
-                yPosition += lineHeight; // Espaço extra
+                yPosition += lineHeight;
                 const precoTotal = servicosAdicionados.reduce((acc, s) => acc + s.preco, 0);
                 const totalTexto = `Valor Total: R$ ${precoTotal.toFixed(2)}`;
                 ctx.font = 'bold 24px Arial';
                 const totalLargura = ctx.measureText(totalTexto).width;
                 ctx.fillText(totalTexto, canvas.width - xPosition - totalLargura, yPosition);
-
-                // 7. Gera e baixa a imagem
                 const link = document.createElement('a');
                 link.download = `orcamento-${clienteSelecionadoOrcamento.nome.replace(/ /g, '_')}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             };
-
             templateImg.onerror = () => {
-                alert("Erro ao carregar a imagem de template 'Orcamento.png'. Verifique se o arquivo está na mesma pasta que o index.html ou no local correto do repositório.");
+                alert("Erro ao carregar a imagem de template 'Orcamento.png'.");
             }
         }
         async function compartilharOrcamento() {
