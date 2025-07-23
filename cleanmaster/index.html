@@ -68,7 +68,7 @@
         .finance-row.lucro { font-size: 1.2rem; font-weight: bold; }
         .finance-row.lucro strong { color: #27ae60; }
 
-        /* Aba Clientes */
+        /* Aba Clientes (NOVO ESTILO) */
         .cliente-list-item { display: flex; flex-direction: column; padding: 15px; border-bottom: 1px solid #f0f0f0; }
         .cliente-list-item-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .cliente-nome { cursor: pointer; flex-grow: 1; font-weight: 500; }
@@ -590,7 +590,16 @@
                             placeholder.innerHTML = ''; // Fecha se já estiver aberto
                         }
                     }
-                    // (Restante dos listeners de ação do histórico)
+                    if (e.target.matches('[data-action="baixar"]')) {
+                        const servicoId = parseInt(e.target.dataset.servicoId);
+                        const servico = appData.servicosPrestados.find(sp => sp.id === servicoId);
+                        if(servico) generateQuoteImage('download', servico);
+                    }
+                    if (e.target.matches('[data-action="compartilhar"]')) {
+                        const servicoId = parseInt(e.target.dataset.servicoId);
+                        const servico = appData.servicosPrestados.find(sp => sp.id === servicoId);
+                        if(servico) generateQuoteImage('share', servico);
+                    }
                 });
                 
                 document.querySelector('.container')?.addEventListener('change', (e) => {
