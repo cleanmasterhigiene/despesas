@@ -68,7 +68,7 @@
         .finance-row.lucro { font-size: 1.2rem; font-weight: bold; }
         .finance-row.lucro strong { color: #27ae60; }
 
-        /* Aba Clientes (NOVO ESTILO) */
+        /* Aba Clientes */
         .cliente-list-item { display: flex; flex-direction: column; padding: 15px; border-bottom: 1px solid #f0f0f0; }
         .cliente-list-item-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .cliente-nome { cursor: pointer; flex-grow: 1; font-weight: 500; }
@@ -329,6 +329,8 @@
                 }
                 appData.servicosPadrao.forEach(sp => {
                     const custoTotal = calcularCustoTotalServicoPadrao(sp);
+                    const item = document.createElement('div');
+                    item.className = 'servico-padrao-item';
                     item.innerHTML = `<div class="item-info"><div class="nome">${sp.nome}</div><div class="custo">Preço Venda: R$ ${(sp.precoVenda || 0).toFixed(2)} / Custo: R$ ${custoTotal.toFixed(2)}</div></div><button type="button" class="delete-btn" data-id="${sp.id}">&times;</button>`;
                     lista.appendChild(item);
                 });
